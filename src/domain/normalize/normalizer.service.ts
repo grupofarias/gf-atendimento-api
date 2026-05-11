@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { ChannelType, ContentType, InternalMessage, MediaInfo } from '@domain/types/internal-message.type';
+import { ChannelType, ContentType, InternalMessage, MediaInfo, MessageDirection } from '@domain/types/internal-message.type';
 
 import { isGroupJid, normalizePhone } from './phone.util';
 
@@ -11,13 +11,22 @@ export interface ChatwootWebhookPayload {
   id?: number;
   content?: string;
   content_type?: string;
-  created_at?: number;
+  created_at?: number | string;
   channel?: string;
+  account?: {
+    id?: number;
+    name?: string;
+  };
+  inbox?: {
+    id?: number;
+    name?: string;
+  };
   conversation?: {
     id: number;
     inbox_id: number;
     status?: string;
     assignee?: unknown;
+    labels?: string[];
   };
   contact?: {
     id?: number;
@@ -27,6 +36,7 @@ export interface ChatwootWebhookPayload {
   sender?: {
     type?: string;
     phone_number?: string;
+    name?: string;
   };
   attachments?: Array<{
     file_type?: string;
@@ -51,7 +61,7 @@ export interface NormalizeResult {
 
 export interface NormalizeSuccess {
   filtered: false;
-  message: Omit<InternalMessage, 'contactId' | 'botCode'> & { contactId?: number };
+  message: Omit<InternalMessage, 'contactId'> & { contactId?: number };
 }
 
 export type NormalizerResult = NormalizeResult | NormalizeSuccess;
@@ -62,23 +72,8 @@ export class NormalizerService {
     payload: ChatwootWebhookPayload,
     inboxConfig: { chatwootInboxId: number; channelType: ChannelType },
   ): NormalizerResult {
-    if (payload.event !== 'message_created') {
-      return { filtered: true, reason: `event=${payload.event}` };
-    }
-
-    if (payload.message_type !== 'incoming') {
-      return { filtered: true, reason: `message_type=${payload.message_type}` };
-    }
-
-    if (payload.private === true) {
-      return { filtered: true, reason: 'private=true' };
-    }
-
-    if (payload.sender?.type !== 'contact') {
-      return { filtered: true, reason: `sender.type=${payload.sender?.type}` };
-    }
-
     const rawPhone = payload.sender?.phone_number ?? payload.contact?.phone_number ?? '';
+
     if (isGroupJid(rawPhone)) {
       return { filtered: true, reason: 'group_message' };
     }
@@ -89,9 +84,12 @@ export class NormalizerService {
       ? this.buildMediaInfo(payload, contentType)
       : undefined;
 
+    const messageType = this.resolveMessageType(payload.message_type);
+
     return {
       filtered: false,
       message: {
+        event: payload.event,
         messageId: String(payload.id ?? ''),
         conversationId: payload.conversation?.id ?? 0,
         contactId: payload.contact?.id,
@@ -99,6 +97,14 @@ export class NormalizerService {
         inboxId: inboxConfig.chatwootInboxId,
         channelType: inboxConfig.channelType,
         contentType,
+        messageType,
+        isPrivate: payload.private === true,
+        senderType: payload.sender?.type,
+        labels: payload.conversation?.labels ?? [],
+        accountId: payload.account?.id ?? 0,
+        contactName: payload.sender?.name ?? payload.contact?.name,
+        inboxName: payload.inbox?.name,
+        chatwootUrl: '',
         text: contentType === 'text' || contentType === 'poll' ? (payload.content ?? undefined) : undefined,
         media,
         location: contentType === 'location'
@@ -108,9 +114,22 @@ export class NormalizerService {
               label: payload.content_attributes?.location?.name,
             }
           : undefined,
-        timestamp: (payload.created_at ?? Date.now() / 1000) * 1000,
+        timestamp: this.resolveTimestamp(payload.created_at),
       },
     };
+  }
+
+  private resolveMessageType(messageType?: string): MessageDirection {
+    if (messageType === 'outgoing') return 'outgoing';
+    if (messageType === 'activity') return 'activity';
+    return 'incoming';
+  }
+
+  private resolveTimestamp(created_at?: number | string): number {
+    if (!created_at) return Date.now();
+    if (typeof created_at === 'number') return created_at * 1000;
+    const parsed = new Date(created_at).getTime();
+    return Number.isNaN(parsed) ? Date.now() : parsed;
   }
 
   private resolveContentType(payload: ChatwootWebhookPayload): ContentType {

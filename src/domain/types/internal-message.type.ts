@@ -15,6 +15,8 @@ export type ContentType =
 
 export type ChannelType = 'whatsapp' | 'webchat' | 'instagram' | 'facebook' | 'api';
 
+export type MessageDirection = 'incoming' | 'outgoing' | 'activity';
+
 export interface MediaInfo {
   url: string;
   mimeType: string;
@@ -27,14 +29,22 @@ export interface MediaInfo {
 }
 
 export interface InternalMessage {
+  event: string;
   messageId: string;
   conversationId: number;
-  contactId: number;
+  contactId?: number;
   phone: string;
   inboxId: number;
   channelType: ChannelType;
   contentType: ContentType;
-  botCode: string;
+  messageType: MessageDirection;
+  isPrivate: boolean;
+  senderType?: string;
+  labels: string[];
+  accountId: number;
+  contactName?: string;
+  inboxName?: string;
+  chatwootUrl: string;
   text?: string;
   media?: MediaInfo;
   location?: { latitude: number; longitude: number; label?: string };

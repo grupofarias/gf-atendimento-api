@@ -1,0 +1,374 @@
+{
+  "name": "02-Chatwoot Handler com Middleware",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "SEU_WEBHOOK_PATH_AQUI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [4480, 2560],
+      "id": "c3bb3895-373a-47ab-96a1-401df939b9f7",
+      "name": "Webhook",
+      "webhookId": "67efff21-5eaf-4aba-9780-3280dfc9a91e"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://SEU_TUNNEL_URL/normalize",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "SUA_MIDDLEWARE_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [4944, 2560],
+      "id": "e4c0d955-237a-4825-a999-a73161c49f0d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-skip",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "cond-type",
+              "leftValue": "={{ $json.message?.messageType }}",
+              "rightValue": "incoming",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [5184, 2560],
+      "id": "bb89f003-5271-4fff-ab86-92e0c1c780de",
+      "name": "Filtrar incoming"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensagem do cliente:\n{{ $('HTTP Request').item.json.message.text }}\n\n\n<systemMessage>\n  <identity>\n    Você é um agente operacional do Grupo Farias para atendimento via Chatwoot.\n    Responda sempre em português brasileiro.\n  </identity>\n\n  <mission>\n    Sua única função é decidir qual ferramenta chamar para tratar a mensagem recebida.\n    Você não deve conversar diretamente pelo output final do AI Agent.\n  </mission>\n\n  <absoluteRules>\n    <rule>PROIBIDO responder ao cliente usando texto final do AI Agent.</rule>\n    <rule>PROIBIDO retornar mensagem em texto livre.</rule>\n    <rule>Para qualquer resposta ao cliente, chame obrigatoriamente a ferramenta send_message.</rule>\n    <rule>Se precisar responder \"ok\", \"olá\", \"não sei\", \"vou verificar\" ou qualquer outra coisa, use send_message.</rule>\n    <rule>NUNCA diga ao cliente que vai encaminhar para um humano sem ter chamado handoff_to_human PRIMEIRO. A ordem é: 1) chame handoff_to_human, 2) depois chame send_message avisando o encaminhamento.</rule>\n    <rule>NUNCA prometa ou afirme algo ao cliente sem ter executado a ferramenta correspondente antes.</rule>\n    <rule>Não invente informações do Grupo Farias.</rule>\n  </absoluteRules>\n\n  <toolsPolicy>\n    <tool name=\"send_message\">\n      Ferramenta obrigatória para enviar mensagem ao cliente.\n      Toda resposta visível ao cliente deve ser enviada por esta ferramenta.\n    </tool>\n\n    <tool name=\"handoff_to_human\">\n      Use quando o cliente pedir humano, quando faltar informação ou quando a dúvida não puder ser respondida com segurança.\n      REGRA: se o cliente pedir atendente pelo nome, chame get_agents primeiro para obter o agentId correto, depois chame handoff_to_human com esse agentId.\n      SEMPRE execute handoff_to_human ANTES de notificar o cliente via send_message.\n    </tool>\n\n    <tool name=\"get_agents\">\n      Use ANTES de handoff_to_human quando o cliente solicitar um atendente específico pelo nome.\n      Retorna lista de agentes com id e name.\n    </tool>\n\n    <tool name=\"add_labels\">\n      Use quando identificar categoria clara: financeiro, suporte, urgente, comercial, reclamação ou dúvida.\n    </tool>\n\n    <tool name=\"set_status\">\n      Use com \"resolved\" apenas quando o cliente agradecer, encerrar ou não houver mais ação necessária.\n    </tool>\n  </toolsPolicy>\n\n  <conversationContext>\n    <conversationId>{{ $json.conversationId }}</conversationId>\n    <cliente>{{ $json.cliente }}</cliente>\n    <telefone>{{ $json.telefone }}</telefone>\n    <canal>{{ $json.canal }}</canal>\n    <etiquetasAtuais>{{ $json.etiquetasAtuais }}</etiquetasAtuais>\n    <tipoMensagem>{{ $json.tipoMensagem }}</tipoMensagem>\n    <linkChatwoot>{{ $json.linkChatwoot }}</linkChatwoot>\n    <mensagemCliente>{{ $json.mensagemCliente }}</mensagemCliente>\n  </conversationContext>\n\n  <executionFlow>\n    <step>Leia mensagemCliente.</step>\n    <step>Classifique a intenção.</step>\n    <step>Se houver categoria clara, chame add_labels.</step>\n    <step>Se o cliente pedir humano ou atendente específico: (a) chame get_agents se precisar de ID, (b) chame handoff_to_human, (c) chame send_message avisando o encaminhamento. NUNCA inverta essa ordem.</step>\n    <step>Se não for handoff, chame send_message com uma resposta curta e objetiva.</step>\n    <step>Se o atendimento estiver encerrado, chame set_status com \"resolved\".</step>\n  </executionFlow>\n\n  <finalOutputRule>\n    Depois de chamar as ferramentas necessárias, retorne apenas:\n    EXECUTADO\n  </finalOutputRule>\n</systemMessage>",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [5408, 2560],
+      "id": "9d0ab0c9-70d5-4c1f-9ef1-582e788e56a5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [5104, 2784],
+      "id": "2deb882a-92d2-4ce4-bd7a-16d5f10c7a69",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "SUBSTITUIR_ID_CREDENCIAL_OPENAI",
+          "name": "Sua credencial OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Envia mensagem de texto ao cliente na conversa ativa. Use para responder ao cliente. Use private=true para notas internas visíveis apenas para agentes no Chatwoot.",
+        "method": "POST",
+        "url": "={{ 'https://SEU_TUNNEL_URL/conversations/' + $('HTTP Request').item.json.message.conversationId + '/messages' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "SUA_MIDDLEWARE_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $fromAI('content', 'Texto da mensagem para enviar ao cliente', 'string'), contentType: 'text', private: $fromAI('private', 'true para nota interna (só agentes veem), false para mensagem ao cliente. Default false', 'boolean', false) }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [5488, 2784],
+      "id": "33de9425-75a1-4d7e-bfa7-1f8e18194d05",
+      "name": "send_message"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Transfere a conversa para atendente humano e desativa o bot. REGRA OBRIGATÓRIA: se precisar direcionar para um atendente específico, chame get_agents ANTES para obter o id correto. Use quando o cliente solicitar humano, quando você não souber responder adequadamente, ou quando a situação exigir intervenção humana. agentId e teamId são opcionais — omita se não souber.",
+        "method": "POST",
+        "url": "={{ 'https://SEU_TUNNEL_URL/conversations/' + $('HTTP Request').item.json.message.conversationId + '/handoff' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "SUA_MIDDLEWARE_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ reason: $fromAI('reason', 'Motivo do handoff para registro em log. Ex: Cliente solicitou falar com humano', 'string'), agentId: $fromAI('agentId', 'ID numérico do atendente obtido via get_agents. Omitir (null) se não souber qual atendente designar.', 'number', null), teamId: $fromAI('teamId', 'ID numérico do time no Chatwoot. Omitir (null) se não houver time específico.', 'number', null) }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [5664, 2784],
+      "id": "097484cd-5f5a-45de-8e5c-7d994347166d",
+      "name": "handoff_to_human"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Adiciona etiquetas à conversa no Chatwoot para categorização. Não remove etiquetas existentes. Exemplos: 'financeiro', 'suporte', 'urgente', 'duvida', 'reclamacao', 'vendas'.",
+        "method": "POST",
+        "url": "={{ 'https://SEU_TUNNEL_URL/conversations/' + $('HTTP Request').item.json.message.conversationId + '/labels' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "SUA_MIDDLEWARE_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ labels: $fromAI('labels', 'Array de strings com as etiquetas a adicionar. Ex: [\"financeiro\", \"urgente\"]', 'json') }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [5808, 2784],
+      "id": "262b8b68-7a7a-4427-9039-567a48913474",
+      "name": "add_labels"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Altera o status da conversa. Use 'resolved' quando o atendimento for concluído. Use 'pending' quando aguarda ação humana. Use 'open' para reabrir uma conversa.",
+        "method": "PATCH",
+        "url": "={{ 'https://SEU_TUNNEL_URL/conversations/' + $('HTTP Request').item.json.message.conversationId + '/status' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "SUA_MIDDLEWARE_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: $fromAI('status', 'Status da conversa: open, pending, resolved ou snoozed', 'string') }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [5904, 2784],
+      "id": "051dcaf4-ac99-4ba1-88ca-f8b07d0b766d",
+      "name": "set_status"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca os atendentes (agentes) disponíveis para a caixa de entrada desta conversa. Retorna lista com id e name de cada agente. SEMPRE chame esta ferramenta ANTES de chamar handoff_to_human quando precisar direcionar para um atendente específico.",
+        "method": "GET",
+        "url": "={{ 'https://SEU_TUNNEL_URL/conversations/' + $('HTTP Request').item.json.message.conversationId + '/agents' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "SUA_MIDDLEWARE_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [6000, 2784],
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "get_agents"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.account.id }}-{{ $('Webhook').item.json.body.conversation.contact_inbox.inbox_id }}-{{ $('Webhook').item.json.body.conversation.contact_inbox.contact_id }}",
+        "sessionTTL": 60000,
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [5280, 2784],
+      "id": "983477a5-0628-4ccb-b8c1-15f7d28ac0f4",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "SUBSTITUIR_ID_CREDENCIAL_REDIS",
+          "name": "Sua credencial Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b99c5522-db34-44ce-85b8-2e1f20b2fb0a",
+              "leftValue": "={{ $json.body.conversation.labels }}",
+              "rightValue": "bot-off",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [4688, 2544],
+      "id": "8ce090e3-e2cf-4085-9a63-bc5e8fd7fb35",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Webhook').item.json.body.account.id }}-{{ $('Webhook').item.json.body.conversation.contact_inbox.inbox_id }}-{{ $('Webhook').item.json.body.conversation.contact_inbox.contact_id }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [4992, 2896],
+      "id": "d1bd573a-686e-40ec-a521-5f0da5858a43",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "SUBSTITUIR_ID_CREDENCIAL_REDIS",
+          "name": "Sua credencial Redis"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{ "node": "If", "type": "main", "index": 0 }]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [{ "node": "Filtrar incoming", "type": "main", "index": 0 }]
+      ]
+    },
+    "Filtrar incoming": {
+      "main": [
+        [{ "node": "AI Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]
+      ]
+    },
+    "send_message": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "handoff_to_human": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "add_labels": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "set_status": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "get_agents": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [{ "node": "AI Agent", "type": "ai_memory", "index": 0 }]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [{ "node": "HTTP Request", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "meta": {
+    "notes": "MODELO — substitua SEU_TUNNEL_URL, SUA_MIDDLEWARE_API_KEY e os IDs de credenciais antes de ativar. Ver instruções na aba Setup n8n do flow.html."
+  },
+  "tags": []
+}

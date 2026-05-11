@@ -10,7 +10,7 @@ export class ConversationsService {
 
   constructor(
     @InjectRepository(Conversation)
-    private readonly repo: Repository<Conversation>,
+    readonly repo: Repository<Conversation>,
   ) {}
 
   async upsertConversation(

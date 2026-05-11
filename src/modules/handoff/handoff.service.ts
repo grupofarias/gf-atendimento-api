@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -24,13 +24,6 @@ export class HandoffService {
     agentId: number | null,
     reason: string | null,
   ): Promise<{ status: string; botActive: boolean; conversationStatus: string }> {
-    if (!teamId && !agentId) {
-      throw new BadRequestException({
-        error: 'Ao menos teamId ou agentId deve ser informado',
-        code: 'MISSING_HANDOFF_TARGET',
-      });
-    }
-
     const conversation = await this.conversationsService.findByIdOrFail(chatwootConversationId);
 
     const inboxConfig = await this.inboxConfigRepo.findOne({
@@ -39,10 +32,19 @@ export class HandoffService {
 
     if (!inboxConfig) throw new Error(`InboxConfig not found for inboxId=${conversation.inboxId}`);
 
-    await this.chatwoot.assignTeam(chatwootConversationId, teamId, agentId, inboxConfig.accountId);
+    if (teamId || agentId) {
+      await this.chatwoot.assignTeam(chatwootConversationId, teamId, agentId, inboxConfig.accountId);
+    }
     await this.chatwoot.setConversationStatus(chatwootConversationId, 'pending', inboxConfig.accountId);
+    await this.chatwoot.addLabels(chatwootConversationId, inboxConfig.accountId, ['bot-off']);
     await this.conversationsService.setBotActive(chatwootConversationId, false);
     await this.conversationsService.setStatus(chatwootConversationId, 'pending');
+
+    const noteLines = ['🤖 Bot desativado pelo agente de IA.'];
+    if (reason) noteLines.push(`Motivo: ${reason}`);
+    if (agentId) noteLines.push(`Atendente ID: ${agentId}`);
+    if (teamId) noteLines.push(`Time ID: ${teamId}`);
+    await this.chatwoot.sendMessage(chatwootConversationId, noteLines.join('\n'), true, inboxConfig.accountId);
 
     await this.handoffLogRepo.save(
       this.handoffLogRepo.create({

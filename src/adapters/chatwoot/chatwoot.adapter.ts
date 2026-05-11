@@ -87,10 +87,12 @@ export class ChatwootAdapter {
     const config = await this.loadAccountConfig(accountId);
     const client = this.buildClient(config);
 
-    await client.patch(`/conversations/${chatwootConversationId}/assignments`, {
-      team_id: teamId,
-      assignee_id: agentId,
-    });
+    if (teamId) {
+      await client.post(`/conversations/${chatwootConversationId}/assignments`, { team_id: teamId });
+    }
+    if (agentId) {
+      await client.post(`/conversations/${chatwootConversationId}/assignments`, { assignee_id: agentId });
+    }
   }
 
   async setConversationStatus(
@@ -101,6 +103,48 @@ export class ChatwootAdapter {
     const config = await this.loadAccountConfig(accountId);
     const client = this.buildClient(config);
 
-    await client.patch(`/conversations/${chatwootConversationId}`, { status });
+    await client.post(`/conversations/${chatwootConversationId}/toggle_status`, { status });
+  }
+
+  async getAllAgents(accountId: number): Promise<unknown[]> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const res = await client.get<unknown[]>('/agents');
+    return (res.data as Array<{ confirmed?: boolean }>).filter(a => a.confirmed !== false);
+  }
+
+  async getInboxAgents(accountId: number, inboxId: number): Promise<unknown[]> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const membersRes = await client.get<{ payload: unknown[] }>(`/inbox_members/${inboxId}`);
+    const members = membersRes.data.payload ?? [];
+    if (members.length > 0) return members;
+    const allRes = await client.get<unknown[]>('/agents');
+    return (allRes.data as Array<{ confirmed?: boolean; role?: string }>).filter(
+      a => a.confirmed !== false && a.role === 'administrator',
+    );
+  }
+
+  async getTeams(accountId: number): Promise<unknown[]> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const res = await client.get<unknown[]>('/teams');
+    return res.data;
+  }
+
+  async addLabels(chatwootConversationId: number, accountId: number, labels: string[]): Promise<void> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const current = await client.get<{ payload: string[] }>(`/conversations/${chatwootConversationId}/labels`);
+    const merged = [...new Set([...(current.data.payload ?? []), ...labels])];
+    await client.post(`/conversations/${chatwootConversationId}/labels`, { labels: merged });
+  }
+
+  async removeLabels(chatwootConversationId: number, accountId: number, labelsToRemove: string[]): Promise<void> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const current = await client.get<{ payload: string[] }>(`/conversations/${chatwootConversationId}/labels`);
+    const remaining = (current.data.payload ?? []).filter((l) => !labelsToRemove.includes(l));
+    await client.post(`/conversations/${chatwootConversationId}/labels`, { labels: remaining });
   }
 }

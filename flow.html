@@ -4,33 +4,58 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>gf-atendimento-api · Fluxo de Dados</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 
 :root{
-  --bg:#06080f;
-  --surface:#0b0f1a;
-  --surface2:#111826;
-  --border:#1a2235;
-  --text:#d4dce8;
-  --muted:#4a5568;
-  --dim:#2d3748;
+  /* backgrounds */
+  --bg:#07090f;
+  --surface:#0d1120;
+  --surface2:#131929;
+  --surface3:#19213a;
 
-  --green:#25d366;
-  --cyan:#00c8e8;
+  /* borders */
+  --border:#1e2d47;
+  --border-soft:#182238;
+
+  /* text — hierarquia clara */
+  --text:#e8edf5;          /* body principal */
+  --text-secondary:#aab4c8; /* descrições */
+  --text-muted:#6e7e96;    /* datas, metadados */
+  --text-dim:#3d5070;      /* separadores */
+
+  /* accent colors */
+  --green:#22c55e;
+  --cyan:#06b6d4;
   --orange:#f97316;
   --amber:#f59e0b;
+  --amber-bright:#fbbf24;
   --purple:#a78bfa;
+  --purple-bright:#c4b5fd;
   --pink:#f472b6;
-  --red:#ef4444;
+  --red:#f87171;
+  --blue:#60a5fa;
+  --blue-bright:#93c5fd;
 
   --entrada:#10b981;
   --saida:#60a5fa;
 
+  /* spacing */
   --r:10px;
-  --font-mono:'JetBrains Mono',monospace;
-  --font-display:'Syne',sans-serif;
+  --max:720px;
+
+  /* fonts */
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-display:'Outfit',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+
+  /* readable sizes */
+  --text-xs:0.72rem;
+  --text-sm:0.82rem;
+  --text-base:0.92rem;
+  --text-md:1.0rem;
+  --text-lg:1.1rem;
 }
 
 html{scroll-behavior:smooth}
@@ -38,7 +63,9 @@ html{scroll-behavior:smooth}
 body{
   background:var(--bg);
   color:var(--text);
-  font-family:var(--font-mono);
+  font-family:var(--font-body);
+  font-size:var(--text-base);
+  line-height:1.6;
   min-height:100vh;
   position:relative;
   overflow-x:hidden;
@@ -49,20 +76,20 @@ body::before{
   content:'';
   position:fixed;
   inset:0;
-  background-image:radial-gradient(circle,#1a2235 1.5px,transparent 1.5px);
-  background-size:28px 28px;
+  background-image:radial-gradient(circle,rgba(30,45,71,.8) 1px,transparent 1px);
+  background-size:32px 32px;
   pointer-events:none;
   z-index:0;
 }
 
-/* subtle radial glow center */
+/* ambient glow */
 body::after{
   content:'';
   position:fixed;
-  top:50%;left:50%;
+  top:30%;left:50%;
   transform:translate(-50%,-50%);
-  width:700px;height:700px;
-  background:radial-gradient(circle,rgba(245,158,11,.04) 0%,transparent 70%);
+  width:900px;height:600px;
+  background:radial-gradient(ellipse,rgba(245,158,11,.03) 0%,transparent 65%);
   pointer-events:none;
   z-index:0;
 }
@@ -73,44 +100,47 @@ header{
   padding:1.25rem 2rem;
   border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:1.5rem;
-  backdrop-filter:blur(8px);
-  background:rgba(6,8,15,.8);
+  backdrop-filter:blur(12px);
+  background:rgba(7,9,15,.85);
   flex-wrap:wrap;
 }
 
 .logo{
   font-family:var(--font-display);
-  font-size:1.1rem;font-weight:800;
-  letter-spacing:-.01em;
+  font-size:1.15rem;font-weight:800;
+  letter-spacing:-.02em;
   white-space:nowrap;
+  color:var(--text);
 }
-.logo em{color:var(--amber);font-style:normal}
+.logo em{color:var(--amber-bright);font-style:normal}
 
 .subtitle{
-  font-size:.65rem;
-  color:var(--muted);
-  letter-spacing:.1em;
+  font-size:var(--text-xs);
+  color:var(--text-muted);
+  letter-spacing:.08em;
   text-transform:uppercase;
   flex:1;
+  font-family:var(--font-display);
+  font-weight:500;
 }
 
 .controls{display:flex;gap:.5rem;flex-wrap:wrap}
 
 .btn{
-  padding:.4rem 1rem;
+  padding:.45rem 1.1rem;
   border:1px solid var(--border);
   border-radius:6px;
   background:transparent;
-  color:var(--muted);
-  font-family:var(--font-mono);
-  font-size:.65rem;font-weight:700;
-  letter-spacing:.08em;
+  color:var(--text-muted);
+  font-family:var(--font-display);
+  font-size:var(--text-xs);font-weight:600;
+  letter-spacing:.06em;
   cursor:pointer;
   transition:all .2s;
   text-transform:uppercase;
   white-space:nowrap;
 }
-.btn:hover{opacity:.9}
+.btn:hover{color:var(--text-secondary);border-color:var(--border-soft)}
 .btn.entrada.active{background:var(--entrada);border-color:var(--entrada);color:#fff;box-shadow:0 0 20px rgba(16,185,129,.3)}
 .btn.saida.active{background:var(--saida);border-color:var(--saida);color:#fff;box-shadow:0 0 20px rgba(96,165,250,.3)}
 .btn.both.active{background:var(--amber);border-color:var(--amber);color:#000;box-shadow:0 0 20px rgba(245,158,11,.3)}
@@ -120,103 +150,104 @@ main{
   position:relative;z-index:1;
   display:flex;flex-direction:column;
   align-items:center;
-  padding:2.5rem 1.5rem 3rem;
+  padding:2.5rem 1.5rem 4rem;
   gap:0;
 }
 
 /* ── NODE ── */
 .node{
-  width:100%;max-width:680px;
+  width:100%;max-width:var(--max);
   border:1px solid var(--border);
   border-radius:var(--r);
   background:var(--surface);
-  padding:.875rem 1.25rem;
+  padding:1rem 1.375rem;
   display:flex;align-items:center;gap:1rem;
   transition:box-shadow .3s,transform .2s;
   cursor:default;
 }
-.node:hover{
-  transform:translateY(-1px);
-}
+.node:hover{transform:translateY(-1px)}
 
-.node-icon{font-size:1.5rem;flex-shrink:0;line-height:1}
-
+.node-icon{font-size:1.6rem;flex-shrink:0;line-height:1}
 .node-body{flex:1;min-width:0}
+
 .node-name{
   font-family:var(--font-display);
-  font-size:.875rem;font-weight:700;
-  letter-spacing:.01em;
+  font-size:var(--text-md);font-weight:700;
+  letter-spacing:-.01em;
+  color:var(--text);
 }
 .node-desc{
-  font-size:.6rem;color:var(--muted);
-  margin-top:.15rem;
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  margin-top:.2rem;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-weight:400;
 }
 
 .node-badge{
-  font-size:.55rem;font-weight:700;
-  letter-spacing:.12em;text-transform:uppercase;
-  padding:.2rem .6rem;border-radius:4px;
+  font-size:.68rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:.25rem .7rem;border-radius:5px;
   flex-shrink:0;
+  font-family:var(--font-display);
 }
 
 /* layer colors */
-.layer-client{border-color:rgba(37,211,102,.35)}
-.layer-client:hover{box-shadow:0 0 24px rgba(37,211,102,.12)}
-.layer-client .node-badge{background:rgba(37,211,102,.1);color:var(--green);border:1px solid rgba(37,211,102,.3)}
-.layer-client .node-icon{text-shadow:0 0 10px rgba(37,211,102,.5)}
+.layer-client{border-color:rgba(34,197,94,.3)}
+.layer-client:hover{box-shadow:0 0 28px rgba(34,197,94,.1)}
+.layer-client .node-badge{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.layer-client .node-icon{filter:drop-shadow(0 0 6px rgba(34,197,94,.4))}
 
-.layer-gateway{border-color:rgba(0,200,232,.35)}
-.layer-gateway:hover{box-shadow:0 0 24px rgba(0,200,232,.12)}
-.layer-gateway .node-badge{background:rgba(0,200,232,.1);color:var(--cyan);border:1px solid rgba(0,200,232,.3)}
-.layer-gateway .node-icon{text-shadow:0 0 10px rgba(0,200,232,.5)}
+.layer-gateway{border-color:rgba(6,182,212,.3)}
+.layer-gateway:hover{box-shadow:0 0 28px rgba(6,182,212,.1)}
+.layer-gateway .node-badge{background:rgba(6,182,212,.1);color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
+.layer-gateway .node-icon{filter:drop-shadow(0 0 6px rgba(6,182,212,.4))}
 
-.layer-crm{border-color:rgba(249,115,22,.35)}
-.layer-crm:hover{box-shadow:0 0 24px rgba(249,115,22,.12)}
-.layer-crm .node-badge{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
-.layer-crm .node-icon{text-shadow:0 0 10px rgba(249,115,22,.5)}
-
-.layer-ai{border-color:rgba(244,114,182,.35)}
-.layer-ai:hover{box-shadow:0 0 24px rgba(244,114,182,.12)}
-.layer-ai .node-badge{background:rgba(244,114,182,.1);color:var(--pink);border:1px solid rgba(244,114,182,.3)}
-.layer-ai .node-icon{text-shadow:0 0 10px rgba(244,114,182,.5)}
+.layer-crm{border-color:rgba(6,182,212,.3)}
+.layer-crm:hover{box-shadow:0 0 28px rgba(6,182,212,.1)}
+.layer-crm .node-badge{background:rgba(6,182,212,.1);color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
+.layer-crm .node-icon{filter:drop-shadow(0 0 6px rgba(6,182,212,.4))}
 
 /* ── CONNECTOR ── */
 .connector{
-  width:100%;max-width:680px;
+  width:100%;max-width:var(--max);
   display:grid;
   grid-template-columns:1fr 32px 1fr;
   gap:.75rem;
   align-items:center;
-  height:72px;
+  height:80px;
 }
 
-.conn-side{display:flex;flex-direction:column;gap:.25rem}
+.conn-side{display:flex;flex-direction:column;gap:.3rem}
 .conn-side.entrada{align-items:flex-end;text-align:right}
 .conn-side.saida{align-items:flex-start;text-align:left}
 
 .step-badge{
   display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;border-radius:50%;
-  font-size:.6rem;font-weight:700;
+  width:20px;height:20px;border-radius:50%;
+  font-size:.7rem;font-weight:700;
+  font-family:var(--font-display);
   flex-shrink:0;
 }
-.step-badge.e{background:var(--entrada);color:#fff;box-shadow:0 0 8px rgba(16,185,129,.4)}
-.step-badge.s{background:var(--saida);color:#fff;box-shadow:0 0 8px rgba(96,165,250,.4)}
+.step-badge.e{background:var(--entrada);color:#fff;box-shadow:0 0 10px rgba(16,185,129,.4)}
+.step-badge.s{background:var(--saida);color:#fff;box-shadow:0 0 10px rgba(96,165,250,.4)}
 
 .conn-label{
-  font-size:.58rem;
-  color:var(--dim);
-  letter-spacing:.03em;
-  line-height:1.3;
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  letter-spacing:.01em;
+  line-height:1.35;
+  font-weight:500;
 }
 .conn-method{
-  font-size:.53rem;
-  color:rgba(74,85,104,.7);
-  font-style:italic;
+  font-size:var(--text-xs);
+  color:var(--text-muted);
+  font-family:var(--font-mono);
+  font-style:normal;
+  line-height:1.3;
 }
 
-/* vertical line */
+/* vertical pipe */
 .conn-center{
   position:relative;
   display:flex;justify-content:center;
@@ -225,13 +256,12 @@ main{
 }
 .conn-pipe{
   width:2px;
-  background:linear-gradient(to bottom,var(--border),var(--border));
+  background:var(--border);
   flex:1;
   position:relative;
   overflow:hidden;
 }
 
-/* animated packets */
 .packet{
   position:absolute;
   width:7px;height:7px;
@@ -261,7 +291,6 @@ main{
   100%{top:-4px;opacity:0}
 }
 
-/* flow mode classes on body control visibility */
 body.mode-entrada .packet.pe{animation:goDown 2.2s ease-in-out infinite}
 body.mode-entrada .packet.ps{display:none}
 body.mode-saida .packet.ps{animation:goUp 2.2s ease-in-out infinite}
@@ -269,159 +298,367 @@ body.mode-saida .packet.pe{display:none}
 body.mode-both .packet.pe{animation:goDown 2.2s ease-in-out infinite}
 body.mode-both .packet.ps{animation:goUp 2.2s ease-in-out infinite}
 
-/* dim inactive side labels */
 body.mode-entrada .conn-side.saida .conn-label,
 body.mode-entrada .conn-side.saida .conn-method,
-body.mode-entrada .step-badge.s{opacity:.3}
+body.mode-entrada .step-badge.s{opacity:.25}
 body.mode-saida .conn-side.entrada .conn-label,
 body.mode-saida .conn-side.entrada .conn-method,
-body.mode-saida .step-badge.e{opacity:.3}
+body.mode-saida .step-badge.e{opacity:.25}
+
+/* ── N8N BOX ── */
+.n8n-box{
+  width:100%;max-width:var(--max);
+  border:1px solid rgba(167,139,250,.35);
+  border-radius:12px;
+  background:var(--surface);
+  box-shadow:0 0 60px rgba(167,139,250,.05),inset 0 1px 0 rgba(167,139,250,.07);
+  overflow:hidden;
+}
+
+.n8n-header{
+  padding:1rem 1.375rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:1rem;
+  background:rgba(167,139,250,.03);
+}
+.n8n-icon{font-size:1.6rem;line-height:1;filter:drop-shadow(0 0 8px rgba(167,139,250,.5))}
+.n8n-info{flex:1}
+.n8n-title{
+  font-family:var(--font-display);
+  font-size:var(--text-lg);font-weight:800;
+  color:var(--purple-bright);letter-spacing:-.01em;
+}
+.n8n-url{font-size:var(--text-sm);color:var(--text-secondary);margin-top:.2rem;font-weight:400}
+.n8n-badge{
+  font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:.25rem .7rem;border-radius:5px;
+  background:rgba(167,139,250,.1);color:var(--purple-bright);border:1px solid rgba(167,139,250,.25);
+  flex-shrink:0;
+  font-family:var(--font-display);
+}
+
+.n8n-inner{
+  padding:1rem 1.375rem;
+  border-bottom:1px solid var(--border);
+}
+
+.n8n-agent{
+  padding:.75rem 1rem;
+  border:1px solid rgba(167,139,250,.2);
+  border-radius:8px;
+  background:rgba(167,139,250,.04);
+}
+.n8n-agent-title{
+  font-family:var(--font-display);
+  font-size:var(--text-base);font-weight:700;color:var(--purple-bright);
+  margin-bottom:.3rem;
+}
+.n8n-agent-desc{
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  line-height:1.5;
+  font-weight:400;
+}
+
+.n8n-decision{
+  padding:1rem 1.375rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:.875rem;
+}
+.n8n-decision-icon{font-size:1.2rem;line-height:1;flex-shrink:0;margin-top:.15rem}
+.n8n-decision-info{flex:1}
+.n8n-decision-title{
+  font-family:var(--font-display);
+  font-size:var(--text-base);font-weight:700;color:var(--purple-bright);
+  margin-bottom:.5rem;
+}
+.decision-list{display:flex;flex-direction:column;gap:.4rem}
+.decision-item{
+  display:flex;align-items:baseline;gap:.6rem;
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  line-height:1.4;
+}
+.decision-item .tag{
+  font-size:.63rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:.15rem .45rem;border-radius:4px;flex-shrink:0;
+  font-family:var(--font-display);
+}
+.tag-skip{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.tag-ok{background:rgba(16,185,129,.1);color:#4ade80;border:1px solid rgba(16,185,129,.25)}
+.tag-stop{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
 
 /* ── MIDDLEWARE BOX ── */
 .middleware{
-  width:100%;max-width:680px;
-  border:1px solid rgba(245,158,11,.4);
+  width:100%;max-width:var(--max);
+  border:1px solid rgba(245,158,11,.35);
   border-radius:12px;
   background:var(--surface);
-  box-shadow:0 0 60px rgba(245,158,11,.06),inset 0 1px 0 rgba(245,158,11,.08);
+  box-shadow:0 0 60px rgba(245,158,11,.05),inset 0 1px 0 rgba(245,158,11,.07);
   overflow:hidden;
 }
 
 .mw-header{
-  padding:1rem 1.25rem;
+  padding:1rem 1.375rem;
   border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:.875rem;
+  display:flex;align-items:center;gap:1rem;
   background:rgba(245,158,11,.03);
 }
-.mw-icon{font-size:1.5rem;line-height:1;text-shadow:0 0 12px rgba(245,158,11,.5)}
+.mw-icon{font-size:1.6rem;line-height:1;filter:drop-shadow(0 0 8px rgba(245,158,11,.5))}
 .mw-info{flex:1}
 .mw-title{
   font-family:var(--font-display);
-  font-size:.95rem;font-weight:800;
-  color:var(--amber);letter-spacing:.01em;
+  font-size:var(--text-lg);font-weight:800;
+  color:var(--amber-bright);letter-spacing:-.01em;
 }
-.mw-url{font-size:.58rem;color:var(--muted);margin-top:.1rem}
+.mw-url{font-size:var(--text-sm);color:var(--text-secondary);margin-top:.2rem;font-weight:400}
 .mw-badge{
-  font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  padding:.2rem .6rem;border-radius:4px;
-  background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.3);
+  font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:.25rem .7rem;border-radius:5px;
+  background:rgba(245,158,11,.1);color:var(--amber-bright);border:1px solid rgba(245,158,11,.25);
   flex-shrink:0;
+  font-family:var(--font-display);
+}
+
+/* section titles inside boxes */
+.box-section-title{
+  font-family:var(--font-display);
+  font-size:var(--text-sm);font-weight:700;
+  color:var(--text-secondary);
+  letter-spacing:.06em;text-transform:uppercase;
+  margin-bottom:.75rem;
+  display:flex;align-items:center;gap:.5rem;
 }
 
 /* pipeline */
 .pipeline{
-  padding:1rem 1.25rem;
+  padding:1rem 1.375rem;
   display:flex;align-items:stretch;gap:0;
   border-bottom:1px solid var(--border);
   overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
 }
 
 .ps{
   flex:1;min-width:110px;
   background:rgba(245,158,11,.04);
-  border:1px solid rgba(245,158,11,.12);
+  border:1px solid rgba(245,158,11,.15);
   border-radius:8px;
-  padding:.75rem;
+  padding:.875rem;
 }
-.ps-icon{font-size:1.1rem;line-height:1;margin-bottom:.4rem}
+.ps-icon{font-size:1.2rem;line-height:1;margin-bottom:.4rem}
 .ps-name{
   font-family:var(--font-display);
-  font-size:.75rem;font-weight:700;
-  margin-bottom:.2rem;
+  font-size:var(--text-sm);font-weight:700;
+  margin-bottom:.25rem;
+  color:var(--text);
 }
-.ps-desc{font-size:.55rem;color:var(--muted);line-height:1.4}
+.ps-desc{
+  font-size:var(--text-xs);
+  color:var(--text-secondary);
+  line-height:1.45;
+  font-weight:400;
+}
 
 .ps-arrow{
   display:flex;align-items:center;
-  padding:0 .4rem;
+  padding:0 .5rem;
   color:rgba(245,158,11,.4);
-  font-size:.75rem;
+  font-size:.85rem;
   flex-shrink:0;
+}
+
+/* InternalMessage schema */
+.internal-msg{
+  padding:1rem 1.375rem;
+  border-bottom:1px solid var(--border);
+}
+.im-title{
+  font-family:var(--font-display);
+  font-size:var(--text-sm);font-weight:700;
+  color:var(--amber-bright);
+  margin-bottom:.6rem;
+  display:flex;align-items:center;gap:.5rem;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.im-grid{
+  display:flex;flex-wrap:wrap;gap:.35rem;
+}
+.im-field{
+  font-size:var(--text-xs);
+  padding:.2rem .55rem;
+  border-radius:4px;
+  background:rgba(245,158,11,.06);
+  border:1px solid rgba(245,158,11,.15);
+  color:var(--text-secondary);
+  font-family:var(--font-mono);
+  line-height:1.4;
+}
+.im-field em{color:var(--amber-bright);font-style:normal}
+
+/* tools section */
+.tools-section{
+  padding:1rem 1.375rem;
+  border-bottom:1px solid var(--border);
+}
+.ts-title{
+  font-family:var(--font-display);
+  font-size:var(--text-sm);font-weight:700;
+  color:var(--amber-bright);
+  margin-bottom:.75rem;
+  display:flex;align-items:center;gap:.5rem;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.ts-title-icon{font-size:1rem}
+
+.tool-card{
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:.5rem;
+  overflow:hidden;
+  transition:border-color .2s;
+}
+.tool-card:hover{border-color:rgba(245,158,11,.25)}
+.tool-card:last-child{margin-bottom:0}
+
+.tc-header{
+  padding:.55rem .875rem;
+  background:var(--surface2);
+  display:flex;align-items:center;gap:.6rem;
+  flex-wrap:wrap;
+}
+.tc-method{
+  font-weight:700;
+  font-size:.63rem;
+  letter-spacing:.07em;
+  padding:.15rem .45rem;
+  border-radius:4px;
+  flex-shrink:0;
+  font-family:var(--font-display);
+}
+.tc-method.post{background:rgba(16,185,129,.12);color:#4ade80}
+.tc-method.patch{background:rgba(245,158,11,.12);color:var(--amber-bright)}
+.tc-method.get{background:rgba(96,165,250,.12);color:var(--blue-bright)}
+.tc-method.delete{background:rgba(248,113,113,.12);color:var(--red)}
+
+.tc-path{
+  color:var(--text);
+  font-size:var(--text-sm);
+  flex:1;
+  font-family:var(--font-mono);
+  font-weight:500;
+}
+.tc-label{
+  font-size:.63rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:.15rem .45rem;border-radius:4px;
+  background:rgba(167,139,250,.08);color:var(--purple-bright);border:1px solid rgba(167,139,250,.2);
+  flex-shrink:0;
+  font-family:var(--font-display);
+}
+
+.tc-body{
+  padding:.5rem .875rem;
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  line-height:1.5;
+  font-weight:400;
+}
+.tc-body code{
+  font-family:var(--font-mono);
+  color:var(--text-muted);
+  font-size:var(--text-xs);
+  background:var(--surface3);
+  padding:.1rem .3rem;
+  border-radius:3px;
 }
 
 /* storage row */
 .storage-row{
-  padding:.875rem 1.25rem;
-  display:flex;gap:.625rem;flex-wrap:wrap;
+  padding:1rem 1.375rem;
+  display:flex;gap:.75rem;flex-wrap:wrap;
   border-bottom:1px solid var(--border);
 }
 
 .si{
-  display:flex;align-items:center;gap:.6rem;
-  flex:1;min-width:150px;
-  padding:.625rem .875rem;
-  background:rgba(167,139,250,.05);
-  border:1px solid rgba(167,139,250,.15);
+  display:flex;align-items:flex-start;gap:.7rem;
+  flex:1;min-width:160px;
+  padding:.75rem 1rem;
+  background:var(--surface2);
+  border:1px solid var(--border);
   border-radius:8px;
   cursor:default;
-  transition:background .2s;
+  transition:background .2s,border-color .2s;
 }
-.si:hover{background:rgba(167,139,250,.09)}
+.si:hover{background:var(--surface3);border-color:var(--border-soft)}
 
-.si-emoji{font-size:1rem;line-height:1;flex-shrink:0}
-.si-info{}
-.si-name{font-size:.7rem;font-weight:700;color:var(--purple)}
-.si-desc{font-size:.55rem;color:var(--muted);margin-top:.1rem;line-height:1.3}
+.si-emoji{font-size:1.1rem;line-height:1;flex-shrink:0;margin-top:.1rem}
+.si-name{
+  font-family:var(--font-display);
+  font-size:var(--text-base);font-weight:700;
+  color:var(--text);
+  margin-bottom:.2rem;
+}
+.si-desc{
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  line-height:1.45;
+  font-weight:400;
+}
+.si-tables{
+  display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.4rem;
+}
+.si-table{
+  font-size:.65rem;
+  padding:.12rem .4rem;
+  border-radius:4px;
+  background:rgba(96,165,250,.06);
+  border:1px solid rgba(96,165,250,.15);
+  color:var(--blue-bright);
+  font-family:var(--font-mono);
+}
 
 /* auth note */
 .auth-note{
-  padding:.75rem 1.25rem;
+  padding:.875rem 1.375rem;
   display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
-  font-size:.58rem;color:var(--muted);
-  font-style:italic;
-  background:rgba(239,68,68,.02);
-  border-top:1px dashed rgba(239,68,68,.1);
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  background:rgba(248,113,113,.02);
+  border-top:1px dashed rgba(248,113,113,.15);
+  font-weight:400;
 }
-.auth-icon{font-size:.9rem;flex-shrink:0}
+.auth-icon{font-size:1rem;flex-shrink:0}
 .auth-tag{
-  background:rgba(239,68,68,.1);color:var(--red);
-  border:1px solid rgba(239,68,68,.2);
-  border-radius:4px;padding:.1rem .4rem;
-  font-style:normal;font-size:.55rem;font-weight:700;letter-spacing:.05em;
+  background:rgba(248,113,113,.1);color:var(--red);
+  border:1px solid rgba(248,113,113,.2);
+  border-radius:4px;padding:.15rem .45rem;
+  font-size:var(--text-xs);font-weight:700;letter-spacing:.05em;
+  font-family:var(--font-display);
 }
 
 /* step label */
 .step-label{
-  width:100%;max-width:680px;
-  display:flex;align-items:center;gap:.75rem;
-  padding:.375rem 0;
+  width:100%;max-width:var(--max);
+  display:flex;align-items:center;gap:.875rem;
+  padding:.5rem 0;
 }
 .sl-line{flex:1;height:1px;background:var(--border)}
-.sl-text{font-size:.6rem;color:var(--muted);white-space:nowrap;font-style:italic}
+.sl-text{
+  font-size:var(--text-xs);
+  color:var(--text-muted);
+  font-style:normal;
+  font-weight:500;
+  white-space:nowrap;
+  font-family:var(--font-display);
+  letter-spacing:.02em;
+}
 .sl-badge-e{
   display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;border-radius:50%;
-  font-size:.6rem;font-weight:700;
-  background:var(--entrada);color:#fff;box-shadow:0 0 8px rgba(16,185,129,.3);
+  width:20px;height:20px;border-radius:50%;
+  font-size:.7rem;font-weight:700;
+  background:var(--entrada);color:#fff;box-shadow:0 0 10px rgba(16,185,129,.3);
   flex-shrink:0;
-}
-.sl-badge-s{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;border-radius:50%;
-  font-size:.6rem;font-weight:700;
-  background:var(--saida);color:#fff;box-shadow:0 0 8px rgba(96,165,250,.3);
-  flex-shrink:0;
-}
-
-/* flow-context strip (above/below middleware) */
-.strip{
-  width:100%;max-width:680px;
-  padding:.5rem 1rem;
-  border-radius:6px;
-  font-size:.58rem;
-  letter-spacing:.05em;
-  display:flex;align-items:center;gap:.6rem;
-  margin:0;
-}
-.strip.in{
-  background:rgba(16,185,129,.05);
-  border:1px solid rgba(16,185,129,.15);
-  color:var(--entrada);
-}
-.strip.out{
-  background:rgba(96,165,250,.05);
-  border:1px solid rgba(96,165,250,.15);
-  color:var(--saida);
+  font-family:var(--font-display);
 }
 
 /* ── LEGEND ── */
@@ -430,21 +667,263 @@ footer{
   padding:1.25rem 2rem;
   border-top:1px solid var(--border);
   display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;
-  background:rgba(6,8,15,.7);
+  background:rgba(7,9,15,.8);
 }
 
-.ld-item{display:flex;align-items:center;gap:.4rem;font-size:.6rem;color:var(--muted)}
+.ld-item{display:flex;align-items:center;gap:.5rem;font-size:var(--text-xs);color:var(--text-secondary);font-weight:500}
 .ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.ld-sep{color:var(--border);font-size:1rem}
+.ld-sep{color:var(--border);font-size:.9rem}
+
+/* ── TABS ── */
+.tab-bar{
+  display:flex;gap:.25rem;
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;
+  background:rgba(7,9,15,.85);
+  position:relative;z-index:9;
+}
+.tab-btn{
+  padding:.75rem 1.25rem;
+  font-family:var(--font-display);
+  font-size:var(--text-xs);font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-muted);
+  background:transparent;border:none;
+  border-bottom:2px solid transparent;
+  cursor:pointer;
+  transition:color .2s,border-color .2s;
+  margin-bottom:-1px;
+  white-space:nowrap;
+}
+.tab-btn:hover{color:var(--text-secondary)}
+.tab-btn.active{color:var(--amber-bright);border-bottom-color:var(--amber-bright)}
+
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── N8N SETUP PAGE ── */
+.setup-page{
+  position:relative;z-index:1;
+  max-width:760px;
+  margin:0 auto;
+  padding:2.5rem 1.5rem 4rem;
+}
+
+.setup-title{
+  font-family:var(--font-display);
+  font-size:1.5rem;font-weight:800;
+  color:var(--text);
+  letter-spacing:-.02em;
+  margin-bottom:.35rem;
+}
+.setup-subtitle{
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  margin-bottom:2.5rem;
+  line-height:1.5;
+}
+
+/* visual flow steps */
+.setup-flow{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  margin-bottom:2.5rem;
+}
+
+.sf-step{
+  display:flex;
+  gap:1.25rem;
+  position:relative;
+}
+
+.sf-left{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  flex-shrink:0;
+}
+
+.sf-num{
+  width:32px;height:32px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);
+  font-size:.8rem;font-weight:800;
+  flex-shrink:0;
+  position:relative;z-index:1;
+}
+.sf-num.chatwoot{background:rgba(6,182,212,.15);color:var(--cyan);border:1px solid rgba(6,182,212,.3)}
+.sf-num.n8n{background:rgba(167,139,250,.15);color:var(--purple-bright);border:1px solid rgba(167,139,250,.3)}
+.sf-num.mw{background:rgba(245,158,11,.15);color:var(--amber-bright);border:1px solid rgba(245,158,11,.3)}
+.sf-num.ai{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+
+.sf-line{
+  width:2px;
+  flex:1;
+  min-height:20px;
+  margin:4px 0;
+}
+.sf-line.chatwoot{background:rgba(6,182,212,.2)}
+.sf-line.n8n{background:rgba(167,139,250,.2)}
+.sf-line.mw{background:rgba(245,158,11,.2)}
+.sf-line.ai{background:rgba(34,197,94,.2)}
+
+.sf-content{
+  padding:.75rem 0 1.5rem;
+  flex:1;
+}
+.sf-tag{
+  font-family:var(--font-display);
+  font-size:.6rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:.15rem .5rem;border-radius:4px;
+  display:inline-flex;margin-bottom:.4rem;
+}
+.sf-tag.chatwoot{background:rgba(6,182,212,.1);color:var(--cyan);border:1px solid rgba(6,182,212,.2)}
+.sf-tag.n8n{background:rgba(167,139,250,.1);color:var(--purple-bright);border:1px solid rgba(167,139,250,.2)}
+.sf-tag.mw{background:rgba(245,158,11,.1);color:var(--amber-bright);border:1px solid rgba(245,158,11,.2)}
+.sf-tag.ai{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+
+.sf-heading{
+  font-family:var(--font-display);
+  font-size:var(--text-md);font-weight:700;
+  color:var(--text);
+  margin-bottom:.35rem;
+  letter-spacing:-.01em;
+}
+.sf-desc{
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  line-height:1.55;
+  margin-bottom:.5rem;
+}
+.sf-tip{
+  font-size:var(--text-xs);
+  color:var(--text-muted);
+  line-height:1.5;
+  padding:.5rem .75rem;
+  background:var(--surface2);
+  border-left:2px solid var(--border);
+  border-radius:0 6px 6px 0;
+  margin-top:.4rem;
+}
+.sf-tip strong{color:var(--text-secondary);font-weight:600}
+.sf-code{
+  font-family:var(--font-mono);
+  font-size:var(--text-xs);
+  color:var(--amber-bright);
+  background:var(--surface3);
+  padding:.1rem .35rem;
+  border-radius:3px;
+  border:1px solid rgba(245,158,11,.15);
+}
+
+/* node grid inside steps */
+.sf-nodes{
+  display:flex;flex-wrap:wrap;gap:.4rem;
+  margin-top:.5rem;
+}
+.sf-node{
+  display:flex;align-items:center;gap:.4rem;
+  padding:.3rem .65rem;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  font-size:var(--text-xs);
+  color:var(--text-secondary);
+  font-weight:500;
+}
+.sf-node-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* download section */
+.download-box{
+  border:1px solid rgba(167,139,250,.3);
+  border-radius:12px;
+  background:var(--surface);
+  overflow:hidden;
+  margin-top:2.5rem;
+}
+.download-header{
+  padding:1rem 1.375rem;
+  background:rgba(167,139,250,.04);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.875rem;
+}
+.download-icon{font-size:1.5rem;line-height:1}
+.download-title{
+  font-family:var(--font-display);
+  font-size:var(--text-md);font-weight:700;
+  color:var(--purple-bright);
+  margin-bottom:.1rem;
+}
+.download-sub{font-size:var(--text-sm);color:var(--text-secondary)}
+.download-body{padding:1rem 1.375rem}
+.download-desc{
+  font-size:var(--text-sm);
+  color:var(--text-secondary);
+  line-height:1.55;
+  margin-bottom:1rem;
+}
+
+.node-list{
+  display:flex;flex-direction:column;gap:.375rem;
+  margin-bottom:1rem;
+}
+.nl-item{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.5rem .875rem;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+.nl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.nl-name{
+  font-family:var(--font-display);
+  font-size:var(--text-sm);font-weight:700;
+  color:var(--text);
+  min-width:170px;
+}
+.nl-desc{font-size:var(--text-xs);color:var(--text-muted)}
+
+.download-btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.65rem 1.375rem;
+  background:var(--purple-bright);
+  color:#0d0518;
+  font-family:var(--font-display);
+  font-size:var(--text-sm);font-weight:800;
+  border-radius:8px;
+  text-decoration:none;
+  letter-spacing:.01em;
+  transition:opacity .2s,transform .15s;
+}
+.download-btn:hover{opacity:.9;transform:translateY(-1px)}
+.download-btn-icon{font-size:1rem}
+
+.cred-warn{
+  margin-top:.75rem;
+  padding:.625rem .875rem;
+  background:rgba(248,113,113,.05);
+  border:1px solid rgba(248,113,113,.15);
+  border-radius:8px;
+  font-size:var(--text-xs);
+  color:var(--text-secondary);
+  line-height:1.5;
+}
+.cred-warn strong{color:var(--red);font-weight:600}
 
 /* ── RESPONSIVE ── */
 @media(max-width:600px){
-  .connector{grid-template-columns:1fr 24px 1fr;gap:.5rem;height:80px}
-  .conn-label{font-size:.53rem}
+  .connector{grid-template-columns:1fr 24px 1fr;gap:.5rem;height:88px}
+  .conn-label{font-size:var(--text-xs)}
   .pipeline{gap:.5rem}
   .ps{min-width:90px}
   header{padding:1rem}
-  .logo{font-size:.95rem}
+  .logo{font-size:1rem}
+  main{padding:2rem 1rem 3rem}
+  .node,.mw-header,.n8n-header{padding:.875rem 1rem}
+  .pipeline,.tools-section,.internal-msg,.storage-row,.n8n-inner,.n8n-decision{padding:.875rem 1rem}
 }
 </style>
 </head>
@@ -452,31 +931,37 @@ footer{
 
 <header>
   <div class="logo">gf-atendimento-<em>api</em></div>
-  <div class="subtitle">Arquitetura de Fluxo de Dados · v0.1</div>
+  <div class="subtitle">Arquitetura de Fluxo de Dados &middot; v0.3</div>
   <div class="controls">
-    <button class="btn entrada" onclick="setMode('entrada')">↓ ENTRADA</button>
-    <button class="btn saida" onclick="setMode('saida')">↑ SAÍDA</button>
-    <button class="btn both active" onclick="setMode('both')">⇅ AMBOS</button>
+    <button class="btn entrada" onclick="setMode('entrada')">&#8595; Entrada</button>
+    <button class="btn saida" onclick="setMode('saida')">&#8593; Sa&iacute;da</button>
+    <button class="btn both active" onclick="setMode('both')">&#8645; Ambos</button>
   </div>
 </header>
 
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="setTab('fluxo')">&#128200; Fluxo de Dados</button>
+  <button class="tab-btn" onclick="setTab('n8n')">&#129302; Setup n8n</button>
+</div>
+
+<div id="tab-fluxo" class="tab-panel active">
 <main>
 
   <!-- ── CLIENTE ── -->
   <div class="node layer-client">
-    <div class="node-icon">📱</div>
+    <div class="node-icon">&#128241;</div>
     <div class="node-body">
       <div class="node-name">Cliente WhatsApp</div>
-      <div class="node-desc">Usuário final · envia e recebe mensagens</div>
+      <div class="node-desc">Usu&aacute;rio final &middot; envia e recebe mensagens</div>
     </div>
-    <div class="node-badge">EXTERNO</div>
+    <div class="node-badge">Externo</div>
   </div>
 
-  <!-- CONN 1/11 -->
+  <!-- CONN 1 -->
   <div class="connector">
     <div class="conn-side entrada">
       <div class="step-badge e">1</div>
-      <div class="conn-label">Mensagem chega via WhatsApp</div>
+      <div class="conn-label">Mensagem enviada pelo cliente</div>
     </div>
     <div class="conn-center">
       <div class="conn-pipe">
@@ -487,22 +972,21 @@ footer{
       </div>
     </div>
     <div class="conn-side saida">
-      <div class="step-badge s">11</div>
-      <div class="conn-label">Mensagem entregue ao cliente</div>
+      <div class="conn-label">Resposta entregue ao cliente</div>
     </div>
   </div>
 
   <!-- ── EVOLUTION API ── -->
   <div class="node layer-gateway">
-    <div class="node-icon">🔌</div>
+    <div class="node-icon">&#128268;</div>
     <div class="node-body">
       <div class="node-name">Evolution API</div>
-      <div class="node-desc">Gateway WhatsApp · bridge protocolo ↔ HTTP</div>
+      <div class="node-desc">Gateway WhatsApp &middot; bridge protocolo &#8596; HTTP</div>
     </div>
-    <div class="node-badge">GATEWAY</div>
+    <div class="node-badge">Gateway</div>
   </div>
 
-  <!-- CONN 2/10 -->
+  <!-- CONN 2 -->
   <div class="connector">
     <div class="conn-side entrada">
       <div class="step-badge e">2</div>
@@ -517,27 +1001,26 @@ footer{
       </div>
     </div>
     <div class="conn-side saida">
-      <div class="step-badge s">10</div>
-      <div class="conn-label">Encaminha resposta ao WhatsApp</div>
+      <div class="conn-label">Chatwoot &#8594; Evolution entrega resposta</div>
     </div>
   </div>
 
   <!-- ── CHATWOOT ── -->
   <div class="node layer-crm">
-    <div class="node-icon">💬</div>
+    <div class="node-icon">&#128172;</div>
     <div class="node-body">
       <div class="node-name">Chatwoot</div>
-      <div class="node-desc">chatwootpainel.infragf.com.br · Account #1 · Inbox #1</div>
+      <div class="node-desc">chatwootpainel.infragf.com.br &middot; CRM de conversas &middot; gerencia contatos, inboxes, agentes e times</div>
     </div>
-    <div class="node-badge">CRM</div>
+    <div class="node-badge">CRM / Externo</div>
   </div>
 
-  <!-- CONN 3/9 -->
+  <!-- CONN 3 -->
   <div class="connector">
     <div class="conn-side entrada">
       <div class="step-badge e">3</div>
-      <div class="conn-label">POST /webhooks/chatwoot</div>
-      <div class="conn-method">webhook · message_created</div>
+      <div class="conn-label">Webhook POST /webhooks/chatwoot ao n8n</div>
+      <div class="conn-method">event: message_created &middot; x-chatwoot-signature</div>
     </div>
     <div class="conn-center">
       <div class="conn-pipe">
@@ -548,93 +1031,57 @@ footer{
       </div>
     </div>
     <div class="conn-side saida">
-      <div class="step-badge s">9</div>
-      <div class="conn-label">POST /api/v1/accounts/:id/messages</div>
-      <div class="conn-method">Chatwoot API · send_message</div>
+      <div class="conn-label">Middleware chama API Chatwoot</div>
+      <div class="conn-method">POST messages &middot; toggle_status &middot; assignments &middot; labels</div>
     </div>
   </div>
 
-  <!-- ── MIDDLEWARE ── -->
-  <div class="middleware">
-    <div class="mw-header">
-      <div class="mw-icon">⚙️</div>
-      <div class="mw-info">
-        <div class="mw-title">gf-atendimento-api</div>
-        <div class="mw-url">apigf.loclx.io · localhost:3200</div>
+  <!-- ── N8N ── -->
+  <div class="n8n-box">
+    <div class="n8n-header">
+      <div class="n8n-icon">&#129302;</div>
+      <div class="n8n-info">
+        <div class="n8n-title">n8n &middot; Orquestrador IA</div>
+        <div class="n8n-url">n8n.grupofarias.com.br &middot; recebe webhook Chatwoot, chama middleware, processa com IA</div>
       </div>
-      <div class="mw-badge">MIDDLEWARE</div>
+      <div class="n8n-badge">IA / Orquestrador</div>
     </div>
 
-    <!-- pipeline entrada -->
-    <div class="pipeline">
-      <div class="ps">
-        <div class="ps-icon">🚫</div>
-        <div class="ps-name">Filtro</div>
-        <div class="ps-desc">Descarta <em>outgoing</em> e mensagens <em>private</em></div>
-      </div>
-      <div class="ps-arrow">→</div>
-      <div class="ps">
-        <div class="ps-icon">🔄</div>
-        <div class="ps-name">Dedup</div>
-        <div class="ps-desc">Checa <em>event_id</em> no Redis · descarta duplicatas</div>
-      </div>
-      <div class="ps-arrow">→</div>
-      <div class="ps">
-        <div class="ps-icon">📐</div>
-        <div class="ps-name">Normalizer</div>
-        <div class="ps-desc">Telefone → E.164 · resolve URL mídia via MinIO</div>
-      </div>
-      <div class="ps-arrow">→</div>
-      <div class="ps">
-        <div class="ps-icon">📤</div>
-        <div class="ps-name">Forward</div>
-        <div class="ps-desc">POST payload normalizado ao webhook do n8n</div>
+    <div class="n8n-inner">
+      <div class="n8n-agent">
+        <div class="n8n-agent-title">&#129302; AI Agent</div>
+        <div class="n8n-agent-desc">GPT-4o-mini &middot; Redis Chat Memory por sess&atilde;o (conversationId) &middot; executa tools do middleware via HTTP + x-api-key</div>
       </div>
     </div>
 
-    <!-- storage -->
-    <div class="storage-row">
-      <div class="si">
-        <div class="si-emoji">🔴</div>
-        <div class="si-info">
-          <div class="si-name">Redis</div>
-          <div class="si-desc">dedup cache · idempotency keys (TTL 5 min)</div>
+    <div class="n8n-decision">
+      <div class="n8n-decision-icon">&#9878;&#65039;</div>
+      <div class="n8n-decision-info">
+        <div class="n8n-decision-title">L&oacute;gica de Decis&atilde;o ap&oacute;s receber InternalMessage</div>
+        <div class="decision-list">
+          <div class="decision-item">
+            <span class="tag tag-stop">Para</span>
+            <span>skip=true retornado pelo middleware (outgoing / private / dedup) &rarr; ignora</span>
+          </div>
+          <div class="decision-item">
+            <span class="tag tag-stop">Para</span>
+            <span>label <code style="font-family:var(--font-mono);font-size:.75rem;background:rgba(248,113,113,.08);padding:.05rem .3rem;border-radius:3px;color:var(--red)">bot-off</code> presente OU botActive=false no DB &rarr; limpa Redis Chat Memory</span>
+          </div>
+          <div class="decision-item">
+            <span class="tag tag-ok">Processa</span>
+            <span>incoming sem bot-off &rarr; passa para AI Agent com hist&oacute;rico de chat (Redis)</span>
+          </div>
         </div>
       </div>
-      <div class="si">
-        <div class="si-emoji">🐘</div>
-        <div class="si-info">
-          <div class="si-name">PostgreSQL</div>
-          <div class="si-desc">chatwoot_accounts · bots · inbox_config · conversations · contacts</div>
-        </div>
-      </div>
-      <div class="si">
-        <div class="si-emoji">🪣</div>
-        <div class="si-info">
-          <div class="si-name">MinIO S3</div>
-          <div class="si-desc">s3minio.infragf.com.br · URLs estáveis de mídia</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- auth note -->
-    <div class="auth-note">
-      <span class="auth-icon">🔐</span>
-      <span>Token Chatwoot encriptado com</span>
-      <span class="auth-tag">AES-256-GCM</span>
-      <span>·</span>
-      <span>n8n autentica com header</span>
-      <span class="auth-tag">x-api-key</span>
-      <span>→ MIDDLEWARE_API_KEY</span>
     </div>
   </div>
 
-  <!-- CONN 5/7 -->
+  <!-- CONN 4 -->
   <div class="connector">
     <div class="conn-side entrada">
-      <div class="step-badge e">5</div>
-      <div class="conn-label">POST webhook · InternalMessage JSON</div>
-      <div class="conn-method">contentType · phone · media · conversationId</div>
+      <div class="step-badge e">4</div>
+      <div class="conn-label">POST /normalize &middot; header x-api-key</div>
+      <div class="conn-method">gfatend.loclx.io &middot; payload raw do Chatwoot</div>
     </div>
     <div class="conn-center">
       <div class="conn-pipe">
@@ -645,45 +1092,476 @@ footer{
       </div>
     </div>
     <div class="conn-side saida">
-      <div class="step-badge s">7</div>
-      <div class="conn-label">POST /conversations/:id/messages</div>
-      <div class="conn-method">header: x-api-key · body: content + private?</div>
+      <div class="step-badge s">S</div>
+      <div class="conn-label">AI Agent chama tools via HTTP</div>
+      <div class="conn-method">x-api-key &middot; ver Tools dispon&iacute;veis abaixo</div>
     </div>
   </div>
 
-  <!-- ── N8N ── -->
-  <div class="node layer-ai">
-    <div class="node-icon">🤖</div>
-    <div class="node-body">
-      <div class="node-name">n8n</div>
-      <div class="node-desc">n8n.grupofarias.com.br · webhook/testeApiGfAtendimento · processamento com IA</div>
+  <!-- ── MIDDLEWARE ── -->
+  <div class="middleware">
+    <div class="mw-header">
+      <div class="mw-icon">&#9881;&#65039;</div>
+      <div class="mw-info">
+        <div class="mw-title">gf-atendimento-api</div>
+        <div class="mw-url">gfatend.loclx.io &rarr; localhost:3200 &middot; NestJS &middot; tunnel loclx</div>
+      </div>
+      <div class="mw-badge">Middleware</div>
     </div>
-    <div class="node-badge">IA</div>
+
+    <!-- pipeline -->
+    <div class="pipeline">
+      <div class="ps">
+        <div class="ps-icon">&#128683;</div>
+        <div class="ps-name">Filtro</div>
+        <div class="ps-desc">Descarta outgoing e mensagens privadas</div>
+      </div>
+      <div class="ps-arrow">&rarr;</div>
+      <div class="ps">
+        <div class="ps-icon">&#128260;</div>
+        <div class="ps-name">Dedup</div>
+        <div class="ps-desc">Checa event_id no Redis &middot; descarta duplicatas (TTL 5 min)</div>
+      </div>
+      <div class="ps-arrow">&rarr;</div>
+      <div class="ps">
+        <div class="ps-icon">&#128208;</div>
+        <div class="ps-name">Normaliza</div>
+        <div class="ps-desc">Telefone &rarr; E.164 &middot; resolve m&iacute;dia via MinIO</div>
+      </div>
+      <div class="ps-arrow">&rarr;</div>
+      <div class="ps">
+        <div class="ps-icon">&#128228;</div>
+        <div class="ps-name">Retorno</div>
+        <div class="ps-desc">InternalMessage JSON ou {skip:true}</div>
+      </div>
+    </div>
+
+    <!-- InternalMessage -->
+    <div class="internal-msg">
+      <div class="im-title">&#128203; InternalMessage &mdash; campos retornados ao n8n</div>
+      <div class="im-grid">
+        <span class="im-field"><em>skip</em></span>
+        <span class="im-field"><em>botActive</em></span>
+        <span class="im-field">message.<em>conversationId</em></span>
+        <span class="im-field">message.<em>messageId</em></span>
+        <span class="im-field">message.<em>phone</em></span>
+        <span class="im-field">message.<em>text</em></span>
+        <span class="im-field">message.<em>mediaUrl</em></span>
+        <span class="im-field">message.<em>labels</em></span>
+        <span class="im-field">message.<em>accountId</em></span>
+        <span class="im-field">message.<em>inboxId</em></span>
+        <span class="im-field">message.<em>channelType</em></span>
+        <span class="im-field">message.<em>messageType</em></span>
+        <span class="im-field">message.<em>contactName</em></span>
+        <span class="im-field">message.<em>chatwootUrl</em></span>
+      </div>
+    </div>
+
+    <!-- Tools disponíveis -->
+    <div class="tools-section">
+      <div class="ts-title">
+        <span class="ts-title-icon">&#128279;</span>
+        Tools dispon&iacute;veis ao AI Agent
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method post">POST</span>
+          <span class="tc-path">/conversations/:id/messages</span>
+          <span class="tc-label">Enviar msg</span>
+        </div>
+        <div class="tc-body">
+          Body: <code>{ content, contentType, private }</code> &mdash; Busca credenciais no DB (AES-256-GCM) &rarr; chama Chatwoot API &rarr; entrega ao cliente
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method post">POST</span>
+          <span class="tc-path">/conversations/:id/handoff</span>
+          <span class="tc-label">Handoff</span>
+        </div>
+        <div class="tc-body">
+          Body: <code>{ agentId?, teamId?, reason? }</code> &mdash; toggle_status(pending) + assignments + label <code>bot-off</code> + nota privada + botActive=false no DB
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method patch">PATCH</span>
+          <span class="tc-path">/conversations/:id/status?inboxId=</span>
+          <span class="tc-label">Status</span>
+        </div>
+        <div class="tc-body">
+          Body: <code>{ status }</code> &mdash; Chama Chatwoot toggle_status
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method post">POST</span>
+          <span class="tc-path">/conversations/:id/labels?inboxId=</span>
+          <span class="tc-label">Add labels</span>
+        </div>
+        <div class="tc-body">
+          Body: <code>{ labels }</code> &mdash; Busca labels atuais, merge, POST Chatwoot
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method delete">DELETE</span>
+          <span class="tc-path">/conversations/:id/labels?inboxId=</span>
+          <span class="tc-label">Rem labels</span>
+        </div>
+        <div class="tc-body">
+          Body: <code>{ labels }</code> &mdash; Remove labels indicadas, POST Chatwoot com resultado
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method get">GET</span>
+          <span class="tc-path">/conversations/:id/agents?inboxId=</span>
+          <span class="tc-label">Agentes inbox</span>
+        </div>
+        <div class="tc-body">
+          Retorna agentes da inbox (inbox_members &middot; fallback: admin-role)
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method get">GET</span>
+          <span class="tc-path">/conversations/:id/agents/all?inboxId=</span>
+          <span class="tc-label">Todos agentes</span>
+        </div>
+        <div class="tc-body">
+          Retorna todos os agentes da conta
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tc-header">
+          <span class="tc-method get">GET</span>
+          <span class="tc-path">/conversations/:id/teams?inboxId=</span>
+          <span class="tc-label">Times</span>
+        </div>
+        <div class="tc-body">
+          Retorna todos os times da conta Chatwoot
+        </div>
+      </div>
+    </div>
+
+    <!-- storage -->
+    <div class="storage-row">
+      <div class="si">
+        <div class="si-emoji">&#128308;</div>
+        <div class="si-info">
+          <div class="si-name">Redis</div>
+          <div class="si-desc">Dedup cache (event_id, TTL 5 min) &middot; Chat Memory do AI Agent por sess&atilde;o</div>
+        </div>
+      </div>
+      <div class="si">
+        <div class="si-emoji">&#128024;</div>
+        <div class="si-info">
+          <div class="si-name">PostgreSQL</div>
+          <div class="si-desc">Credenciais AES-256-GCM &middot; estado de conversas e contatos</div>
+          <div class="si-tables">
+            <span class="si-table">chatwoot_accounts</span>
+            <span class="si-table">inbox_config</span>
+            <span class="si-table">conversations</span>
+            <span class="si-table">contacts</span>
+            <span class="si-table">handoff_log</span>
+            <span class="si-table">dedup_cache</span>
+          </div>
+        </div>
+      </div>
+      <div class="si">
+        <div class="si-emoji">&#129695;</div>
+        <div class="si-info">
+          <div class="si-name">MinIO S3</div>
+          <div class="si-desc">s3minio.infragf.com.br &middot; URLs est&aacute;veis de m&iacute;dia</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- auth -->
+    <div class="auth-note">
+      <span class="auth-icon">&#128272;</span>
+      <span>Token Chatwoot encriptado com</span>
+      <span class="auth-tag">AES-256-GCM</span>
+      <span>&middot;</span>
+      <span>n8n autentica no middleware com header</span>
+      <span class="auth-tag">x-api-key</span>
+      <span>&rarr; MIDDLEWARE_API_KEY (env)</span>
+    </div>
   </div>
 
-  <!-- step 6/8 note -->
+  <!-- step 5 -->
   <div class="step-label">
-    <div class="sl-badge-e">6</div>
+    <div class="sl-badge-e">5</div>
     <div class="sl-line"></div>
-    <div class="sl-text">n8n processa mensagem com IA e monta a resposta</div>
+    <div class="sl-text">Middleware retorna InternalMessage &middot; n8n verifica skip / bot-off / botActive &rarr; ignora ou processa com AI Agent</div>
     <div class="sl-line"></div>
-    <div class="sl-badge-s">8</div>
   </div>
 
 </main>
+</div><!-- /tab-fluxo -->
+
+<!-- ── TAB N8N SETUP ── -->
+<div id="tab-n8n" class="tab-panel">
+<div class="setup-page">
+
+  <div class="setup-title">&#129302; Setup n8n</div>
+  <div class="setup-subtitle">Passo a passo para conectar Chatwoot + n8n + Middleware. Siga a ordem abaixo e depois importe o workflow de modelo.</div>
+
+  <div class="setup-flow">
+
+    <!-- STEP 1 — Chatwoot: criar AgentBot -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num chatwoot">1</div>
+        <div class="sf-line chatwoot"></div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag chatwoot">Chatwoot &middot; Admin</span>
+        <div class="sf-heading">Criar o AgentBot</div>
+        <div class="sf-desc">No painel admin do Chatwoot, acesse <strong>Settings &rarr; Integrations &rarr; Agent Bots</strong> e clique em <strong>New Agent Bot</strong>.</div>
+        <div class="sf-tip">
+          <strong>Nome:</strong> ex. <span class="sf-code">GF AI Bot</span><br>
+          <strong>Endpoint URL:</strong> cole a URL do webhook gerada pelo n8n &mdash; ex. <span class="sf-code">https://SEU_N8N/webhook/SEU_PATH</span><br>
+          Salvar. O Chatwoot vai enviar eventos para este endpoint automaticamente.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 — Chatwoot: associar AgentBot à inbox -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num chatwoot">2</div>
+        <div class="sf-line chatwoot"></div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag chatwoot">Chatwoot &middot; Settings</span>
+        <div class="sf-heading">Associar AgentBot &agrave; Inbox</div>
+        <div class="sf-desc">No painel admin do Chatwoot, vá em <strong>Settings &rarr; Inboxes</strong>, clique no ícone de engrenagem (<strong>Settings</strong>) da inbox desejada, abra a aba <strong>Configuration</strong> e localize o campo <strong>Agent Bot</strong>.</div>
+        <div class="sf-tip">
+          Selecione o bot criado no passo anterior e salve.<br>
+          A partir daí o Chatwoot dispara <span class="sf-code">message_created</span> para o n8n em toda nova mensagem incoming nessa inbox.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 — n8n: criar webhook -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num n8n">3</div>
+        <div class="sf-line n8n"></div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag n8n">n8n &middot; Webhook Node</span>
+        <div class="sf-heading">Criar o Webhook no n8n</div>
+        <div class="sf-desc">No workflow, o primeiro n&oacute; &eacute; um <strong>Webhook</strong> com m&eacute;todo <span class="sf-code">POST</span>. A URL gerada pelo n8n &eacute; o que voc&ecirc; colar&aacute; no AgentBot do Chatwoot.</div>
+        <div class="sf-tip">
+          <strong>Path:</strong> qualquer nome &uacute;nico &mdash; ex. <span class="sf-code">chatwoot-handler-prod</span><br>
+          <strong>Authentication:</strong> none (o Chatwoot n&atilde;o envia token de autenticac&atilde;o por padr&atilde;o neste modo)<br>
+          O n&oacute; j&aacute; est&aacute; configurado no JSON de modelo abaixo.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 — n8n: filtro bot-off ANTES do normalize -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num n8n">4</div>
+        <div class="sf-line n8n"></div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag n8n">n8n &middot; If Node</span>
+        <div class="sf-heading">Filtrar bot-off antes de chamar o middleware</div>
+        <div class="sf-desc">Ap&oacute;s o Webhook, o primeiro <strong>If</strong> checa se a label <span class="sf-code">bot-off</span> est&aacute; presente nas labels da conversa <em>no payload bruto do Chatwoot</em>. Se sim, o fluxo encerra e o Redis &eacute; limpo &mdash; sem gastar chamada no middleware.</div>
+        <div class="sf-tip">
+          Condi&ccedil;&atilde;o: <span class="sf-code">$json.body.conversation.labels</span> cont&eacute;m <span class="sf-code">&ldquo;bot-off&rdquo;</span><br>
+          <strong>True (branch 1):</strong> n&oacute; Redis <span class="sf-code">DELETE</span> &mdash; apaga a chave <span class="sf-code">accountId-inboxId-contactId</span><br>
+          <strong>False (branch 2):</strong> continua para POST /normalize
+        </div>
+        <div class="sf-nodes">
+          <div class="sf-node"><div class="sf-node-dot" style="background:var(--purple-bright)"></div>If &mdash; bot-off na label?</div>
+          <div class="sf-node"><div class="sf-node-dot" style="background:var(--red)"></div>Redis DELETE (limpar mem&oacute;ria)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5 — n8n: chamar /normalize -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num mw">5</div>
+        <div class="sf-line mw"></div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag mw">n8n &rarr; Middleware</span>
+        <div class="sf-heading">POST /normalize</div>
+        <div class="sf-desc">N&oacute; <strong>HTTP Request</strong> chama <span class="sf-code">POST https://SEU_TUNNEL_URL/normalize</span> com o body bruto do Chatwoot. O middleware retorna um <strong>InternalMessage</strong> normalizado.</div>
+        <div class="sf-tip">
+          <strong>Header:</strong> <span class="sf-code">x-api-key: SUA_MIDDLEWARE_API_KEY</span> (valor de <span class="sf-code">MIDDLEWARE_API_KEY</span> no <span class="sf-code">.env</span> do middleware)<br>
+          <strong>Body:</strong> <span class="sf-code">JSON.stringify($json.body)</span><br>
+          <strong>Retorno quando deve ignorar:</strong> <span class="sf-code">&#123; skip: true, reason: &ldquo;...&rdquo; &#125;</span><br>
+          <strong>Retorno quando processa:</strong> <span class="sf-code">&#123; skip: false, message: &#123; conversationId, phone, text, labels, ... &#125; &#125;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6 — n8n: filtrar skip + incoming -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num n8n">6</div>
+        <div class="sf-line n8n"></div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag n8n">n8n &middot; If Node</span>
+        <div class="sf-heading">Filtrar skip=false e messageType=incoming</div>
+        <div class="sf-desc">Segundo <strong>If</strong> combina duas condi&ccedil;&otilde;es com AND: descarta mensagens outgoing e qualquer caso em que o middleware pediu skip.</div>
+        <div class="sf-tip">
+          Cond. 1: <span class="sf-code">$json.skip === false</span><br>
+          Cond. 2: <span class="sf-code">$json.message.messageType === &ldquo;incoming&rdquo;</span><br>
+          S&oacute; o ramo <strong>true</strong> segue para o AI Agent.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7 — AI Agent -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num ai">7</div>
+        <div class="sf-line ai"></div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag ai">n8n &middot; AI Agent</span>
+        <div class="sf-heading">AI Agent (GPT-4o-mini + Redis Chat Memory)</div>
+        <div class="sf-desc">O <strong>AI Agent</strong> recebe o contexto da conversa e decide quais tools chamar. Ele s&oacute; se comunica com o cliente via tools &mdash; nunca pelo output final do n&oacute;.</div>
+        <div class="sf-tip">
+          <strong>Modelo:</strong> <span class="sf-code">gpt-4o-mini</span> &mdash; configurar credencial OpenAI<br>
+          <strong>Mem&oacute;ria:</strong> Redis Chat Memory &mdash; sessionKey = <span class="sf-code">accountId-inboxId-contactId</span><br>
+          <strong>TTL sess&atilde;o:</strong> 60000 ms &middot; <strong>Janela de contexto:</strong> 10 mensagens<br>
+          <strong>Mem&oacute;ria Redis:</strong> configurar credencial Redis no n8n e selecionar nos n&oacute;s Redis e Redis Chat Memory
+        </div>
+        <div class="sf-nodes">
+          <div class="sf-node"><div class="sf-node-dot" style="background:#4ade80"></div>send_message</div>
+          <div class="sf-node"><div class="sf-node-dot" style="background:var(--red)"></div>handoff_to_human</div>
+          <div class="sf-node"><div class="sf-node-dot" style="background:var(--amber-bright)"></div>add_labels</div>
+          <div class="sf-node"><div class="sf-node-dot" style="background:var(--blue-bright)"></div>set_status</div>
+          <div class="sf-node"><div class="sf-node-dot" style="background:var(--purple-bright)"></div>get_agents</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 8 — Tools chamam middleware -->
+    <div class="sf-step">
+      <div class="sf-left">
+        <div class="sf-num mw">8</div>
+      </div>
+      <div class="sf-content">
+        <span class="sf-tag mw">AI Agent &rarr; Middleware</span>
+        <div class="sf-heading">Tools chamam o middleware via HTTP</div>
+        <div class="sf-desc">Cada tool &eacute; um n&oacute; <strong>HTTP Request Tool</strong> conectado ao AI Agent. A URL usa <span class="sf-code">$('HTTP Request').item.json.message.conversationId</span> para montar o path dinamicamente.</div>
+        <div class="sf-tip">
+          <strong>Header em todas:</strong> <span class="sf-code">x-api-key: SUA_MIDDLEWARE_API_KEY</span><br>
+          <strong>Ordem obrigat&oacute;ria no handoff:</strong> 1) get_agents (se precisar de ID) &rarr; 2) handoff_to_human &rarr; 3) send_message avisando o cliente
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /setup-flow -->
+
+  <!-- DOWNLOAD DO WORKFLOW -->
+  <div class="download-box">
+    <div class="download-header">
+      <div class="download-icon">&#128196;</div>
+      <div>
+        <div class="download-title">Workflow de Modelo</div>
+        <div class="download-sub">02-chatwoot-handler &middot; JSON import&aacute;vel no n8n</div>
+      </div>
+    </div>
+    <div class="download-body">
+      <div class="download-desc">
+        Workflow de modelo baseado no fluxo real do projeto. Importe no n8n via <strong>Settings &rarr; Import from File</strong> e substitua os placeholders marcados com <span class="sf-code">SUBSTITUIR_</span> e <span class="sf-code">SEU_</span> antes de ativar.
+      </div>
+
+      <div class="node-list">
+        <div class="nl-item">
+          <div class="nl-dot" style="background:var(--purple-bright)"></div>
+          <div class="nl-name">Webhook</div>
+          <div class="nl-desc">Path: <span style="font-family:var(--font-mono)">SEU_WEBHOOK_PATH_AQUI</span> &mdash; altere para o path real e cole a URL gerada no AgentBot do Chatwoot</div>
+        </div>
+        <div class="nl-item">
+          <div class="nl-dot" style="background:var(--cyan)"></div>
+          <div class="nl-name">If (bot-off)</div>
+          <div class="nl-desc">Checa labels no payload bruto antes de chamar /normalize</div>
+        </div>
+        <div class="nl-item">
+          <div class="nl-dot" style="background:var(--red)"></div>
+          <div class="nl-name">Redis (DELETE)</div>
+          <div class="nl-desc">Limpa Chat Memory quando bot-off &middot; <strong>configurar credencial Redis</strong></div>
+        </div>
+        <div class="nl-item">
+          <div class="nl-dot" style="background:var(--amber-bright)"></div>
+          <div class="nl-name">HTTP Request &rarr; /normalize</div>
+          <div class="nl-desc">Substituir <span style="font-family:var(--font-mono)">SEU_TUNNEL_URL</span> e <span style="font-family:var(--font-mono)">SUA_MIDDLEWARE_API_KEY</span> &middot; body: JSON.stringify($json.body)</div>
+        </div>
+        <div class="nl-item">
+          <div class="nl-dot" style="background:var(--purple-bright)"></div>
+          <div class="nl-name">If (Filtrar incoming)</div>
+          <div class="nl-desc">skip=false AND messageType=incoming</div>
+        </div>
+        <div class="nl-item">
+          <div class="nl-dot" style="background:#4ade80"></div>
+          <div class="nl-name">AI Agent</div>
+          <div class="nl-desc">GPT-4o-mini &middot; &#9888;&#65039; substituir credencial OpenAI pelo seu ID</div>
+        </div>
+        <div class="nl-item">
+          <div class="nl-dot" style="background:var(--red)"></div>
+          <div class="nl-name">Redis Chat Memory</div>
+          <div class="nl-desc">sessionKey: accountId-inboxId-contactId &middot; TTL 60s &middot; janela 10 msgs &middot; <strong>configurar credencial Redis</strong></div>
+        </div>
+        <div class="nl-item">
+          <div class="nl-dot" style="background:var(--cyan)"></div>
+          <div class="nl-name">5 Tools HTTP</div>
+          <div class="nl-desc">send_message &middot; handoff_to_human &middot; add_labels &middot; set_status &middot; get_agents</div>
+        </div>
+      </div>
+
+      <a class="download-btn" href="n8n/02-chatwoot-handler.json" download="02-chatwoot-handler.json">
+        <span class="download-btn-icon">&#8659;</span>
+        Baixar workflow JSON
+      </a>
+
+      <div class="cred-warn">
+        <strong>&#9888;&#65039; Substitua antes de ativar:</strong>
+        <span style="font-family:var(--font-mono);color:var(--amber-bright)">SEU_TUNNEL_URL</span> &rarr; URL do seu tunnel (ex. gfatend.loclx.io) &middot;
+        <span style="font-family:var(--font-mono);color:var(--amber-bright)">SUA_MIDDLEWARE_API_KEY</span> &rarr; valor de <span style="font-family:var(--font-mono)">MIDDLEWARE_API_KEY</span> no .env &middot;
+        <span style="font-family:var(--font-mono);color:var(--amber-bright)">SUBSTITUIR_ID_CREDENCIAL_OPENAI</span> &rarr; ID da sua credencial OpenAI no n8n &middot;
+        <span style="font-family:var(--font-mono);color:var(--amber-bright)">SUBSTITUIR_ID_CREDENCIAL_REDIS</span> &rarr; ID da sua credencial Redis no n8n
+      </div>
+    </div>
+  </div>
+
+</div><!-- /setup-page -->
+</div><!-- /tab-n8n -->
 
 <footer>
-  <div class="ld-item"><div class="ld" style="background:var(--green)"></div>Cliente</div>
-  <div class="ld-item"><div class="ld" style="background:var(--cyan)"></div>Gateway</div>
-  <div class="ld-item"><div class="ld" style="background:var(--orange)"></div>CRM</div>
-  <div class="ld-item"><div class="ld" style="background:var(--amber)"></div>Middleware</div>
-  <div class="ld-item"><div class="ld" style="background:var(--purple)"></div>Storage</div>
-  <div class="ld-item"><div class="ld" style="background:var(--pink)"></div>IA</div>
-  <div class="ld-sep">·</div>
+  <div class="ld-item"><div class="ld" style="background:var(--green)"></div>Cliente WhatsApp</div>
+  <div class="ld-item"><div class="ld" style="background:var(--cyan)"></div>Evolution API + Chatwoot</div>
+  <div class="ld-item"><div class="ld" style="background:var(--amber-bright)"></div>Middleware (porta 3200)</div>
+  <div class="ld-item"><div class="ld" style="background:var(--purple-bright)"></div>n8n + AI Agent</div>
+  <div class="ld-item"><div class="ld" style="background:var(--red)"></div>Redis</div>
+  <div class="ld-item"><div class="ld" style="background:var(--blue-bright)"></div>PostgreSQL</div>
+  <div class="ld-item"><div class="ld" style="background:var(--text-muted)"></div>MinIO S3</div>
+  <div class="ld-sep">&middot;</div>
   <div class="ld-item"><div class="ld" style="background:var(--entrada)"></div>Fluxo Entrada</div>
-  <div class="ld-item"><div class="ld" style="background:var(--saida)"></div>Fluxo Saída</div>
-  <div class="ld-sep">·</div>
-  <div class="ld-item" style="color:var(--dim);margin-left:auto;font-size:.55rem">gf-atendimento-api · 2026</div>
+  <div class="ld-item"><div class="ld" style="background:var(--saida)"></div>Fluxo Sa&iacute;da</div>
+  <div class="ld-sep">&middot;</div>
+  <div class="ld-item" style="color:var(--text-dim);margin-left:auto;font-size:.65rem">gf-atendimento-api &middot; 2026</div>
 </footer>
 
 <script>
@@ -691,6 +1569,15 @@ function setMode(mode) {
   document.body.className = 'mode-' + mode;
   document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.btn.' + mode).classList.add('active');
+}
+
+function setTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+  // show/hide flow controls
+  document.querySelector('.controls').style.display = (tab === 'fluxo') ? 'flex' : 'none';
 }
 </script>
 </body>
