@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gf-atendimento-api · Fluxo de Dados</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#06080f;
+  --surface:#0b0f1a;
+  --surface2:#111826;
+  --border:#1a2235;
+  --text:#d4dce8;
+  --muted:#4a5568;
+  --dim:#2d3748;
+
+  --green:#25d366;
+  --cyan:#00c8e8;
+  --orange:#f97316;
+  --amber:#f59e0b;
+  --purple:#a78bfa;
+  --pink:#f472b6;
+  --red:#ef4444;
+
+  --entrada:#10b981;
+  --saida:#60a5fa;
+
+  --r:10px;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-display:'Syne',sans-serif;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-mono);
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* dot grid bg */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:radial-gradient(circle,#1a2235 1.5px,transparent 1.5px);
+  background-size:28px 28px;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* subtle radial glow center */
+body::after{
+  content:'';
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:700px;height:700px;
+  background:radial-gradient(circle,rgba(245,158,11,.04) 0%,transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ── HEADER ── */
+header{
+  position:relative;z-index:10;
+  padding:1.25rem 2rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:1.5rem;
+  backdrop-filter:blur(8px);
+  background:rgba(6,8,15,.8);
+  flex-wrap:wrap;
+}
+
+.logo{
+  font-family:var(--font-display);
+  font-size:1.1rem;font-weight:800;
+  letter-spacing:-.01em;
+  white-space:nowrap;
+}
+.logo em{color:var(--amber);font-style:normal}
+
+.subtitle{
+  font-size:.65rem;
+  color:var(--muted);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  flex:1;
+}
+
+.controls{display:flex;gap:.5rem;flex-wrap:wrap}
+
+.btn{
+  padding:.4rem 1rem;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:transparent;
+  color:var(--muted);
+  font-family:var(--font-mono);
+  font-size:.65rem;font-weight:700;
+  letter-spacing:.08em;
+  cursor:pointer;
+  transition:all .2s;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.btn:hover{opacity:.9}
+.btn.entrada.active{background:var(--entrada);border-color:var(--entrada);color:#fff;box-shadow:0 0 20px rgba(16,185,129,.3)}
+.btn.saida.active{background:var(--saida);border-color:var(--saida);color:#fff;box-shadow:0 0 20px rgba(96,165,250,.3)}
+.btn.both.active{background:var(--amber);border-color:var(--amber);color:#000;box-shadow:0 0 20px rgba(245,158,11,.3)}
+
+/* ── MAIN ── */
+main{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:2.5rem 1.5rem 3rem;
+  gap:0;
+}
+
+/* ── NODE ── */
+.node{
+  width:100%;max-width:680px;
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  background:var(--surface);
+  padding:.875rem 1.25rem;
+  display:flex;align-items:center;gap:1rem;
+  transition:box-shadow .3s,transform .2s;
+  cursor:default;
+}
+.node:hover{
+  transform:translateY(-1px);
+}
+
+.node-icon{font-size:1.5rem;flex-shrink:0;line-height:1}
+
+.node-body{flex:1;min-width:0}
+.node-name{
+  font-family:var(--font-display);
+  font-size:.875rem;font-weight:700;
+  letter-spacing:.01em;
+}
+.node-desc{
+  font-size:.6rem;color:var(--muted);
+  margin-top:.15rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.node-badge{
+  font-size:.55rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:.2rem .6rem;border-radius:4px;
+  flex-shrink:0;
+}
+
+/* layer colors */
+.layer-client{border-color:rgba(37,211,102,.35)}
+.layer-client:hover{box-shadow:0 0 24px rgba(37,211,102,.12)}
+.layer-client .node-badge{background:rgba(37,211,102,.1);color:var(--green);border:1px solid rgba(37,211,102,.3)}
+.layer-client .node-icon{text-shadow:0 0 10px rgba(37,211,102,.5)}
+
+.layer-gateway{border-color:rgba(0,200,232,.35)}
+.layer-gateway:hover{box-shadow:0 0 24px rgba(0,200,232,.12)}
+.layer-gateway .node-badge{background:rgba(0,200,232,.1);color:var(--cyan);border:1px solid rgba(0,200,232,.3)}
+.layer-gateway .node-icon{text-shadow:0 0 10px rgba(0,200,232,.5)}
+
+.layer-crm{border-color:rgba(249,115,22,.35)}
+.layer-crm:hover{box-shadow:0 0 24px rgba(249,115,22,.12)}
+.layer-crm .node-badge{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.layer-crm .node-icon{text-shadow:0 0 10px rgba(249,115,22,.5)}
+
+.layer-ai{border-color:rgba(244,114,182,.35)}
+.layer-ai:hover{box-shadow:0 0 24px rgba(244,114,182,.12)}
+.layer-ai .node-badge{background:rgba(244,114,182,.1);color:var(--pink);border:1px solid rgba(244,114,182,.3)}
+.layer-ai .node-icon{text-shadow:0 0 10px rgba(244,114,182,.5)}
+
+/* ── CONNECTOR ── */
+.connector{
+  width:100%;max-width:680px;
+  display:grid;
+  grid-template-columns:1fr 32px 1fr;
+  gap:.75rem;
+  align-items:center;
+  height:72px;
+}
+
+.conn-side{display:flex;flex-direction:column;gap:.25rem}
+.conn-side.entrada{align-items:flex-end;text-align:right}
+.conn-side.saida{align-items:flex-start;text-align:left}
+
+.step-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  font-size:.6rem;font-weight:700;
+  flex-shrink:0;
+}
+.step-badge.e{background:var(--entrada);color:#fff;box-shadow:0 0 8px rgba(16,185,129,.4)}
+.step-badge.s{background:var(--saida);color:#fff;box-shadow:0 0 8px rgba(96,165,250,.4)}
+
+.conn-label{
+  font-size:.58rem;
+  color:var(--dim);
+  letter-spacing:.03em;
+  line-height:1.3;
+}
+.conn-method{
+  font-size:.53rem;
+  color:rgba(74,85,104,.7);
+  font-style:italic;
+}
+
+/* vertical line */
+.conn-center{
+  position:relative;
+  display:flex;justify-content:center;
+  align-items:stretch;
+  height:100%;
+}
+.conn-pipe{
+  width:2px;
+  background:linear-gradient(to bottom,var(--border),var(--border));
+  flex:1;
+  position:relative;
+  overflow:hidden;
+}
+
+/* animated packets */
+.packet{
+  position:absolute;
+  width:7px;height:7px;
+  border-radius:50%;
+  left:50%;transform:translateX(-50%);
+  opacity:0;
+}
+.packet.pe{
+  background:var(--entrada);
+  box-shadow:0 0 8px var(--entrada),0 0 16px rgba(16,185,129,.3);
+}
+.packet.ps{
+  background:var(--saida);
+  box-shadow:0 0 8px var(--saida),0 0 16px rgba(96,165,250,.3);
+}
+
+@keyframes goDown{
+  0%{top:-4px;opacity:0}
+  8%{opacity:1}
+  92%{opacity:1}
+  100%{top:calc(100% + 4px);opacity:0}
+}
+@keyframes goUp{
+  0%{top:calc(100% + 4px);opacity:0}
+  8%{opacity:1}
+  92%{opacity:1}
+  100%{top:-4px;opacity:0}
+}
+
+/* flow mode classes on body control visibility */
+body.mode-entrada .packet.pe{animation:goDown 2.2s ease-in-out infinite}
+body.mode-entrada .packet.ps{display:none}
+body.mode-saida .packet.ps{animation:goUp 2.2s ease-in-out infinite}
+body.mode-saida .packet.pe{display:none}
+body.mode-both .packet.pe{animation:goDown 2.2s ease-in-out infinite}
+body.mode-both .packet.ps{animation:goUp 2.2s ease-in-out infinite}
+
+/* dim inactive side labels */
+body.mode-entrada .conn-side.saida .conn-label,
+body.mode-entrada .conn-side.saida .conn-method,
+body.mode-entrada .step-badge.s{opacity:.3}
+body.mode-saida .conn-side.entrada .conn-label,
+body.mode-saida .conn-side.entrada .conn-method,
+body.mode-saida .step-badge.e{opacity:.3}
+
+/* ── MIDDLEWARE BOX ── */
+.middleware{
+  width:100%;max-width:680px;
+  border:1px solid rgba(245,158,11,.4);
+  border-radius:12px;
+  background:var(--surface);
+  box-shadow:0 0 60px rgba(245,158,11,.06),inset 0 1px 0 rgba(245,158,11,.08);
+  overflow:hidden;
+}
+
+.mw-header{
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.875rem;
+  background:rgba(245,158,11,.03);
+}
+.mw-icon{font-size:1.5rem;line-height:1;text-shadow:0 0 12px rgba(245,158,11,.5)}
+.mw-info{flex:1}
+.mw-title{
+  font-family:var(--font-display);
+  font-size:.95rem;font-weight:800;
+  color:var(--amber);letter-spacing:.01em;
+}
+.mw-url{font-size:.58rem;color:var(--muted);margin-top:.1rem}
+.mw-badge{
+  font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:.2rem .6rem;border-radius:4px;
+  background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.3);
+  flex-shrink:0;
+}
+
+/* pipeline */
+.pipeline{
+  padding:1rem 1.25rem;
+  display:flex;align-items:stretch;gap:0;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+}
+
+.ps{
+  flex:1;min-width:110px;
+  background:rgba(245,158,11,.04);
+  border:1px solid rgba(245,158,11,.12);
+  border-radius:8px;
+  padding:.75rem;
+}
+.ps-icon{font-size:1.1rem;line-height:1;margin-bottom:.4rem}
+.ps-name{
+  font-family:var(--font-display);
+  font-size:.75rem;font-weight:700;
+  margin-bottom:.2rem;
+}
+.ps-desc{font-size:.55rem;color:var(--muted);line-height:1.4}
+
+.ps-arrow{
+  display:flex;align-items:center;
+  padding:0 .4rem;
+  color:rgba(245,158,11,.4);
+  font-size:.75rem;
+  flex-shrink:0;
+}
+
+/* storage row */
+.storage-row{
+  padding:.875rem 1.25rem;
+  display:flex;gap:.625rem;flex-wrap:wrap;
+  border-bottom:1px solid var(--border);
+}
+
+.si{
+  display:flex;align-items:center;gap:.6rem;
+  flex:1;min-width:150px;
+  padding:.625rem .875rem;
+  background:rgba(167,139,250,.05);
+  border:1px solid rgba(167,139,250,.15);
+  border-radius:8px;
+  cursor:default;
+  transition:background .2s;
+}
+.si:hover{background:rgba(167,139,250,.09)}
+
+.si-emoji{font-size:1rem;line-height:1;flex-shrink:0}
+.si-info{}
+.si-name{font-size:.7rem;font-weight:700;color:var(--purple)}
+.si-desc{font-size:.55rem;color:var(--muted);margin-top:.1rem;line-height:1.3}
+
+/* auth note */
+.auth-note{
+  padding:.75rem 1.25rem;
+  display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+  font-size:.58rem;color:var(--muted);
+  font-style:italic;
+  background:rgba(239,68,68,.02);
+  border-top:1px dashed rgba(239,68,68,.1);
+}
+.auth-icon{font-size:.9rem;flex-shrink:0}
+.auth-tag{
+  background:rgba(239,68,68,.1);color:var(--red);
+  border:1px solid rgba(239,68,68,.2);
+  border-radius:4px;padding:.1rem .4rem;
+  font-style:normal;font-size:.55rem;font-weight:700;letter-spacing:.05em;
+}
+
+/* step label */
+.step-label{
+  width:100%;max-width:680px;
+  display:flex;align-items:center;gap:.75rem;
+  padding:.375rem 0;
+}
+.sl-line{flex:1;height:1px;background:var(--border)}
+.sl-text{font-size:.6rem;color:var(--muted);white-space:nowrap;font-style:italic}
+.sl-badge-e{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  font-size:.6rem;font-weight:700;
+  background:var(--entrada);color:#fff;box-shadow:0 0 8px rgba(16,185,129,.3);
+  flex-shrink:0;
+}
+.sl-badge-s{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  font-size:.6rem;font-weight:700;
+  background:var(--saida);color:#fff;box-shadow:0 0 8px rgba(96,165,250,.3);
+  flex-shrink:0;
+}
+
+/* flow-context strip (above/below middleware) */
+.strip{
+  width:100%;max-width:680px;
+  padding:.5rem 1rem;
+  border-radius:6px;
+  font-size:.58rem;
+  letter-spacing:.05em;
+  display:flex;align-items:center;gap:.6rem;
+  margin:0;
+}
+.strip.in{
+  background:rgba(16,185,129,.05);
+  border:1px solid rgba(16,185,129,.15);
+  color:var(--entrada);
+}
+.strip.out{
+  background:rgba(96,165,250,.05);
+  border:1px solid rgba(96,165,250,.15);
+  color:var(--saida);
+}
+
+/* ── LEGEND ── */
+footer{
+  position:relative;z-index:1;
+  padding:1.25rem 2rem;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;
+  background:rgba(6,8,15,.7);
+}
+
+.ld-item{display:flex;align-items:center;gap:.4rem;font-size:.6rem;color:var(--muted)}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ld-sep{color:var(--border);font-size:1rem}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .connector{grid-template-columns:1fr 24px 1fr;gap:.5rem;height:80px}
+  .conn-label{font-size:.53rem}
+  .pipeline{gap:.5rem}
+  .ps{min-width:90px}
+  header{padding:1rem}
+  .logo{font-size:.95rem}
+}
+</style>
+</head>
+<body class="mode-both">
+
+<header>
+  <div class="logo">gf-atendimento-<em>api</em></div>
+  <div class="subtitle">Arquitetura de Fluxo de Dados · v0.1</div>
+  <div class="controls">
+    <button class="btn entrada" onclick="setMode('entrada')">↓ ENTRADA</button>
+    <button class="btn saida" onclick="setMode('saida')">↑ SAÍDA</button>
+    <button class="btn both active" onclick="setMode('both')">⇅ AMBOS</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── CLIENTE ── -->
+  <div class="node layer-client">
+    <div class="node-icon">📱</div>
+    <div class="node-body">
+      <div class="node-name">Cliente WhatsApp</div>
+      <div class="node-desc">Usuário final · envia e recebe mensagens</div>
+    </div>
+    <div class="node-badge">EXTERNO</div>
+  </div>
+
+  <!-- CONN 1/11 -->
+  <div class="connector">
+    <div class="conn-side entrada">
+      <div class="step-badge e">1</div>
+      <div class="conn-label">Mensagem chega via WhatsApp</div>
+    </div>
+    <div class="conn-center">
+      <div class="conn-pipe">
+        <div class="packet pe" style="animation-delay:0s"></div>
+        <div class="packet pe" style="animation-delay:1.1s"></div>
+        <div class="packet ps" style="animation-delay:.55s"></div>
+        <div class="packet ps" style="animation-delay:1.65s"></div>
+      </div>
+    </div>
+    <div class="conn-side saida">
+      <div class="step-badge s">11</div>
+      <div class="conn-label">Mensagem entregue ao cliente</div>
+    </div>
+  </div>
+
+  <!-- ── EVOLUTION API ── -->
+  <div class="node layer-gateway">
+    <div class="node-icon">🔌</div>
+    <div class="node-body">
+      <div class="node-name">Evolution API</div>
+      <div class="node-desc">Gateway WhatsApp · bridge protocolo ↔ HTTP</div>
+    </div>
+    <div class="node-badge">GATEWAY</div>
+  </div>
+
+  <!-- CONN 2/10 -->
+  <div class="connector">
+    <div class="conn-side entrada">
+      <div class="step-badge e">2</div>
+      <div class="conn-label">Repassa mensagem ao Chatwoot</div>
+    </div>
+    <div class="conn-center">
+      <div class="conn-pipe">
+        <div class="packet pe" style="animation-delay:.15s"></div>
+        <div class="packet pe" style="animation-delay:1.25s"></div>
+        <div class="packet ps" style="animation-delay:.7s"></div>
+        <div class="packet ps" style="animation-delay:1.8s"></div>
+      </div>
+    </div>
+    <div class="conn-side saida">
+      <div class="step-badge s">10</div>
+      <div class="conn-label">Encaminha resposta ao WhatsApp</div>
+    </div>
+  </div>
+
+  <!-- ── CHATWOOT ── -->
+  <div class="node layer-crm">
+    <div class="node-icon">💬</div>
+    <div class="node-body">
+      <div class="node-name">Chatwoot</div>
+      <div class="node-desc">chatwootpainel.infragf.com.br · Account #1 · Inbox #1</div>
+    </div>
+    <div class="node-badge">CRM</div>
+  </div>
+
+  <!-- CONN 3/9 -->
+  <div class="connector">
+    <div class="conn-side entrada">
+      <div class="step-badge e">3</div>
+      <div class="conn-label">POST /webhooks/chatwoot</div>
+      <div class="conn-method">webhook · message_created</div>
+    </div>
+    <div class="conn-center">
+      <div class="conn-pipe">
+        <div class="packet pe" style="animation-delay:.3s"></div>
+        <div class="packet pe" style="animation-delay:1.4s"></div>
+        <div class="packet ps" style="animation-delay:.85s"></div>
+        <div class="packet ps" style="animation-delay:1.95s"></div>
+      </div>
+    </div>
+    <div class="conn-side saida">
+      <div class="step-badge s">9</div>
+      <div class="conn-label">POST /api/v1/accounts/:id/messages</div>
+      <div class="conn-method">Chatwoot API · send_message</div>
+    </div>
+  </div>
+
+  <!-- ── MIDDLEWARE ── -->
+  <div class="middleware">
+    <div class="mw-header">
+      <div class="mw-icon">⚙️</div>
+      <div class="mw-info">
+        <div class="mw-title">gf-atendimento-api</div>
+        <div class="mw-url">apigf.loclx.io · localhost:3200</div>
+      </div>
+      <div class="mw-badge">MIDDLEWARE</div>
+    </div>
+
+    <!-- pipeline entrada -->
+    <div class="pipeline">
+      <div class="ps">
+        <div class="ps-icon">🚫</div>
+        <div class="ps-name">Filtro</div>
+        <div class="ps-desc">Descarta <em>outgoing</em> e mensagens <em>private</em></div>
+      </div>
+      <div class="ps-arrow">→</div>
+      <div class="ps">
+        <div class="ps-icon">🔄</div>
+        <div class="ps-name">Dedup</div>
+        <div class="ps-desc">Checa <em>event_id</em> no Redis · descarta duplicatas</div>
+      </div>
+      <div class="ps-arrow">→</div>
+      <div class="ps">
+        <div class="ps-icon">📐</div>
+        <div class="ps-name">Normalizer</div>
+        <div class="ps-desc">Telefone → E.164 · resolve URL mídia via MinIO</div>
+      </div>
+      <div class="ps-arrow">→</div>
+      <div class="ps">
+        <div class="ps-icon">📤</div>
+        <div class="ps-name">Forward</div>
+        <div class="ps-desc">POST payload normalizado ao webhook do n8n</div>
+      </div>
+    </div>
+
+    <!-- storage -->
+    <div class="storage-row">
+      <div class="si">
+        <div class="si-emoji">🔴</div>
+        <div class="si-info">
+          <div class="si-name">Redis</div>
+          <div class="si-desc">dedup cache · idempotency keys (TTL 5 min)</div>
+        </div>
+      </div>
+      <div class="si">
+        <div class="si-emoji">🐘</div>
+        <div class="si-info">
+          <div class="si-name">PostgreSQL</div>
+          <div class="si-desc">chatwoot_accounts · bots · inbox_config · conversations · contacts</div>
+        </div>
+      </div>
+      <div class="si">
+        <div class="si-emoji">🪣</div>
+        <div class="si-info">
+          <div class="si-name">MinIO S3</div>
+          <div class="si-desc">s3minio.infragf.com.br · URLs estáveis de mídia</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- auth note -->
+    <div class="auth-note">
+      <span class="auth-icon">🔐</span>
+      <span>Token Chatwoot encriptado com</span>
+      <span class="auth-tag">AES-256-GCM</span>
+      <span>·</span>
+      <span>n8n autentica com header</span>
+      <span class="auth-tag">x-api-key</span>
+      <span>→ MIDDLEWARE_API_KEY</span>
+    </div>
+  </div>
+
+  <!-- CONN 5/7 -->
+  <div class="connector">
+    <div class="conn-side entrada">
+      <div class="step-badge e">5</div>
+      <div class="conn-label">POST webhook · InternalMessage JSON</div>
+      <div class="conn-method">contentType · phone · media · conversationId</div>
+    </div>
+    <div class="conn-center">
+      <div class="conn-pipe">
+        <div class="packet pe" style="animation-delay:.45s"></div>
+        <div class="packet pe" style="animation-delay:1.55s"></div>
+        <div class="packet ps" style="animation-delay:1s"></div>
+        <div class="packet ps" style="animation-delay:2.1s"></div>
+      </div>
+    </div>
+    <div class="conn-side saida">
+      <div class="step-badge s">7</div>
+      <div class="conn-label">POST /conversations/:id/messages</div>
+      <div class="conn-method">header: x-api-key · body: content + private?</div>
+    </div>
+  </div>
+
+  <!-- ── N8N ── -->
+  <div class="node layer-ai">
+    <div class="node-icon">🤖</div>
+    <div class="node-body">
+      <div class="node-name">n8n</div>
+      <div class="node-desc">n8n.grupofarias.com.br · webhook/testeApiGfAtendimento · processamento com IA</div>
+    </div>
+    <div class="node-badge">IA</div>
+  </div>
+
+  <!-- step 6/8 note -->
+  <div class="step-label">
+    <div class="sl-badge-e">6</div>
+    <div class="sl-line"></div>
+    <div class="sl-text">n8n processa mensagem com IA e monta a resposta</div>
+    <div class="sl-line"></div>
+    <div class="sl-badge-s">8</div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="ld-item"><div class="ld" style="background:var(--green)"></div>Cliente</div>
+  <div class="ld-item"><div class="ld" style="background:var(--cyan)"></div>Gateway</div>
+  <div class="ld-item"><div class="ld" style="background:var(--orange)"></div>CRM</div>
+  <div class="ld-item"><div class="ld" style="background:var(--amber)"></div>Middleware</div>
+  <div class="ld-item"><div class="ld" style="background:var(--purple)"></div>Storage</div>
+  <div class="ld-item"><div class="ld" style="background:var(--pink)"></div>IA</div>
+  <div class="ld-sep">·</div>
+  <div class="ld-item"><div class="ld" style="background:var(--entrada)"></div>Fluxo Entrada</div>
+  <div class="ld-item"><div class="ld" style="background:var(--saida)"></div>Fluxo Saída</div>
+  <div class="ld-sep">·</div>
+  <div class="ld-item" style="color:var(--dim);margin-left:auto;font-size:.55rem">gf-atendimento-api · 2026</div>
+</footer>
+
+<script>
+function setMode(mode) {
+  document.body.className = 'mode-' + mode;
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.btn.' + mode).classList.add('active');
+}
+</script>
+</body>
+</html>
