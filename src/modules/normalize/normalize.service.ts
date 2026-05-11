@@ -77,7 +77,6 @@ export class NormalizeService {
       message: {
         ...normalized.message,
         contactId: contact.id,
-        botCode: inboxConfig.bot.code,
         chatwootUrl,
       },
     };
@@ -89,7 +88,7 @@ export class NormalizeService {
 
     const config = await this.inboxConfigRepo.findOne({
       where: { chatwootInboxId, active: true },
-      relations: ['bot', 'account'],
+      relations: ['account'],
     });
 
     if (config) {

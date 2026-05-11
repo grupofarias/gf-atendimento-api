@@ -105,7 +105,7 @@ describe('NormalizeService', () => {
     expect(result.message.contentType).toBe('text');
     expect(result.message.phone).toBe('+5511999998888');
     expect(result.message.contactId).toBe(99);
-    expect(result.message.botCode).toBe('n8n-bot');
+    expect(result.message.contactId).toBe(99);
   });
 
   it('resolve media antes de retornar', async () => {

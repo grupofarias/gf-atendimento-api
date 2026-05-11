@@ -61,7 +61,7 @@ export interface NormalizeResult {
 
 export interface NormalizeSuccess {
   filtered: false;
-  message: Omit<InternalMessage, 'contactId' | 'botCode'> & { contactId?: number };
+  message: Omit<InternalMessage, 'contactId'> & { contactId?: number };
 }
 
 export type NormalizerResult = NormalizeResult | NormalizeSuccess;

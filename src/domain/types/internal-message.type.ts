@@ -37,7 +37,6 @@ export interface InternalMessage {
   inboxId: number;
   channelType: ChannelType;
   contentType: ContentType;
-  botCode: string;
   messageType: MessageDirection;
   isPrivate: boolean;
   senderType?: string;
