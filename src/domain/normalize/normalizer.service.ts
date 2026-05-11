@@ -11,7 +11,7 @@ export interface ChatwootWebhookPayload {
   id?: number;
   content?: string;
   content_type?: string;
-  created_at?: number;
+  created_at?: number | string;
   channel?: string;
   conversation?: {
     id: number;
@@ -108,9 +108,16 @@ export class NormalizerService {
               label: payload.content_attributes?.location?.name,
             }
           : undefined,
-        timestamp: (payload.created_at ?? Date.now() / 1000) * 1000,
+        timestamp: this.resolveTimestamp(payload.created_at),
       },
     };
+  }
+
+  private resolveTimestamp(created_at?: number | string): number {
+    if (!created_at) return Date.now();
+    if (typeof created_at === 'number') return created_at * 1000;
+    const parsed = new Date(created_at).getTime();
+    return Number.isNaN(parsed) ? Date.now() : parsed;
   }
 
   private resolveContentType(payload: ChatwootWebhookPayload): ContentType {

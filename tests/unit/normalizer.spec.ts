@@ -53,6 +53,16 @@ describe('NormalizerService', () => {
     expect(result.filtered).toBe(true);
   });
 
+  it('normaliza timestamp ISO string (canal API do Chatwoot)', () => {
+    const result = svc.normalize(
+      basePayload({ created_at: '2026-05-11T15:23:58.009Z' as unknown as number }),
+      inboxConfig,
+    );
+    expect(result.filtered).toBe(false);
+    if (result.filtered) return;
+    expect(result.message.timestamp).toBe(new Date('2026-05-11T15:23:58.009Z').getTime());
+  });
+
   it('nao filtra quando sender.type ausente (canal API)', () => {
     const result = svc.normalize(
       basePayload({ sender: { phone_number: '+5511999998888' } }),
