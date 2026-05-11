@@ -32,10 +32,10 @@ export class HandoffService {
     if (teamId || agentId) {
       await this.chatwoot.assignTeam(chatwootConversationId, teamId, agentId, accountId);
     }
-    await this.chatwoot.setConversationStatus(chatwootConversationId, 'pending', accountId);
+    await this.chatwoot.setConversationStatus(chatwootConversationId, 'open', accountId);
     await this.chatwoot.addLabels(chatwootConversationId, accountId, ['bot-off']);
     await this.conversationsService.setBotActive(chatwootConversationId, false);
-    await this.conversationsService.setStatus(chatwootConversationId, 'pending');
+    await this.conversationsService.setStatus(chatwootConversationId, 'open');
 
     const noteLines = ['🤖 Bot desativado pelo agente de IA.'];
     if (reason) noteLines.push(`Motivo: ${reason}`);
@@ -53,6 +53,6 @@ export class HandoffService {
       }),
     );
 
-    return { status: 'ok', botActive: false, conversationStatus: 'pending' };
+    return { status: 'ok', botActive: false, conversationStatus: 'open' };
   }
 }
