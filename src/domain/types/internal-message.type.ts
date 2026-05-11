@@ -41,6 +41,7 @@ export interface InternalMessage {
   messageType: MessageDirection;
   isPrivate: boolean;
   senderType?: string;
+  labels: string[];
   text?: string;
   media?: MediaInfo;
   location?: { latitude: number; longitude: number; label?: string };

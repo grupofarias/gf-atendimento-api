@@ -18,6 +18,7 @@ export interface ChatwootWebhookPayload {
     inbox_id: number;
     status?: string;
     assignee?: unknown;
+    labels?: string[];
   };
   contact?: {
     id?: number;
@@ -90,6 +91,7 @@ export class NormalizerService {
         messageType,
         isPrivate: payload.private === true,
         senderType: payload.sender?.type,
+        labels: payload.conversation?.labels ?? [],
         text: contentType === 'text' || contentType === 'poll' ? (payload.content ?? undefined) : undefined,
         media,
         location: contentType === 'location'
