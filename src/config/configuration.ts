@@ -1,7 +1,13 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min, validateSync } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUrl, Min, validateSync } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
 export type NodeEnv = 'development' | 'production' | 'test';
+
+const INSECURE_PATTERNS = ['change_me', 'change-me'];
+
+function containsInsecureValue(value: string): boolean {
+  return INSECURE_PATTERNS.some((p) => value.toLowerCase().includes(p));
+}
 
 class EnvironmentVariables {
   @IsEnum(['development', 'production', 'test'])
@@ -57,6 +63,10 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   MINIO_BUCKET: string = 'chatwoot';
+
+  @IsUrl({ require_tld: false })
+  @IsOptional()
+  CHATWOOT_BASE_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -67,6 +77,20 @@ export function validate(config: Record<string, unknown>) {
   if (errors.length > 0) {
     throw new Error(errors.toString());
   }
+
+  if (validated.NODE_ENV === 'production') {
+    if (containsInsecureValue(validated.APP_SECRET)) {
+      throw new Error(
+        'APP_SECRET contém valor padrão inseguro. Gere com: openssl rand -hex 32',
+      );
+    }
+    if (containsInsecureValue(validated.MIDDLEWARE_API_KEY)) {
+      throw new Error(
+        'MIDDLEWARE_API_KEY contém valor padrão inseguro. Gere com: openssl rand -hex 32',
+      );
+    }
+  }
+
   return validated;
 }
 
@@ -88,4 +112,5 @@ export default () => ({
     secretKey: process.env.MINIO_SECRET_KEY!,
     bucket: process.env.MINIO_BUCKET ?? 'chatwoot',
   },
+  chatwootBaseUrl: process.env.CHATWOOT_BASE_URL,
 });

@@ -30,8 +30,8 @@ export class InboxConfig {
   @Column({ name: 'evolution_instance_id', type: 'integer', nullable: true })
   evolutionInstanceId!: number | null;
 
-  @Column({ name: 'bot_id', type: 'integer' })
-  botId!: number;
+  @Column({ name: 'bot_id', type: 'integer', nullable: true })
+  botId!: number | null;
 
   @Column({ name: 'channel_type', type: 'enum', enum: ['whatsapp', 'webchat', 'instagram', 'facebook', 'api'] })
   channelType!: ChannelType;
@@ -47,9 +47,9 @@ export class InboxConfig {
   @JoinColumn({ name: 'evolution_instance_id' })
   evolutionInstance!: EvolutionInstance | null;
 
-  @ManyToOne(() => Bot)
+  @ManyToOne(() => Bot, { nullable: true })
   @JoinColumn({ name: 'bot_id' })
-  bot!: Bot;
+  bot!: Bot | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
