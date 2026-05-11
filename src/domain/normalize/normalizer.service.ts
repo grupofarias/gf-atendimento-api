@@ -74,8 +74,8 @@ export class NormalizerService {
       return { filtered: true, reason: 'private=true' };
     }
 
-    if (payload.sender?.type !== 'contact') {
-      return { filtered: true, reason: `sender.type=${payload.sender?.type}` };
+    if (payload.sender?.type === 'agent') {
+      return { filtered: true, reason: 'sender.type=agent' };
     }
 
     const rawPhone = payload.sender?.phone_number ?? payload.contact?.phone_number ?? '';

@@ -45,12 +45,20 @@ describe('NormalizerService', () => {
     expect(result.filtered).toBe(true);
   });
 
-  it('filtra sender nao-contact', () => {
+  it('filtra sender com type=agent', () => {
     const result = svc.normalize(
       basePayload({ sender: { type: 'agent', phone_number: '+5511999998888' } }),
       inboxConfig,
     );
     expect(result.filtered).toBe(true);
+  });
+
+  it('nao filtra quando sender.type ausente (canal API)', () => {
+    const result = svc.normalize(
+      basePayload({ sender: { phone_number: '+5511999998888' } }),
+      inboxConfig,
+    );
+    expect(result.filtered).toBe(false);
   });
 
   it('filtra mensagem de grupo (@g.us)', () => {
