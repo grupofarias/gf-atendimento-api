@@ -1,34 +1,56 @@
 # Contract: InternalMessage
 
-**Version**: 1.0 | **Date**: 2026-05-02
+**Version**: 2.0 | **Date**: 2026-05-11
 
-Payload entregue pelo middleware ao n8n (POST para `bots.webhook_url`) para cada mensagem
-incoming do cliente. Este e o contrato central do sistema.
+Payload retornado pelo endpoint `POST /normalize` quando `skip: false`.
+O n8n recebe este objeto e decide o que fazer baseado nos campos de roteamento.
 
-## Endpoint de destino
-
-```
-POST {bots.webhook_url}
-Content-Type: application/json
-X-Webhook-Secret: {bots.webhook_secret}   (se configurado)
-```
-
-## Schema
+## Schema completo
 
 ```json
 {
-  "messageId": "abc123",
-  "conversationId": 45,
-  "contactId": 12,
-  "phone": "+5511999998888",
-  "inboxId": 3,
+  "event": "message_created",
+  "messageId": "395",
+  "conversationId": 14,
+  "contactId": 1,
+  "phone": "+5511933030497",
+  "inboxId": 5,
   "channelType": "whatsapp",
   "contentType": "text",
-  "botCode": "atendimento-geral",
-  "text": "Ola, preciso de ajuda",
+  "botCode": "n8n-main",
+  "messageType": "incoming",
+  "isPrivate": false,
+  "senderType": "contact",
+  "labels": ["tagteste"],
+  "text": "Ola",
   "timestamp": 1746144000000
 }
 ```
+
+## Campos de roteamento (n8n decide com base neles)
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `event` | string | Evento Chatwoot: `message_created`, `conversation_updated`, etc. |
+| `messageType` | `incoming` \| `outgoing` \| `activity` | Direção da mensagem |
+| `isPrivate` | boolean | `true` = nota interna para agentes |
+| `senderType` | string \| undefined | `contact`, `agent`, `user` — quem enviou |
+| `labels` | string[] | Tags atuais da conversa no Chatwoot |
+
+**Regra típica no n8n**: processar com IA apenas quando `event === "message_created"` && `messageType === "incoming"` && `!isPrivate`.
+
+## Campos de identificação
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `messageId` | string | ID da mensagem no Chatwoot (dedup key) |
+| `conversationId` | number | ID da conversa no Chatwoot |
+| `contactId` | number \| undefined | ID do contato no banco local do middleware |
+| `phone` | string | Número E.164 do contato (`+5511999998888`) |
+| `inboxId` | number | ID do inbox no Chatwoot |
+| `channelType` | string | `whatsapp` \| `webchat` \| `instagram` \| `facebook` \| `api` |
+| `botCode` | string | Código do bot configurado para este inbox |
+| `timestamp` | number | Unix timestamp em milissegundos |
 
 ## Exemplos por contentType
 
@@ -36,15 +58,15 @@ X-Webhook-Secret: {bots.webhook_secret}   (se configurado)
 
 ```json
 {
-  "messageId": "msg-001",
-  "conversationId": 45,
-  "contactId": 12,
-  "phone": "+5511999998888",
-  "inboxId": 3,
-  "channelType": "whatsapp",
+  "event": "message_created",
+  "messageType": "incoming",
+  "isPrivate": false,
+  "senderType": "contact",
+  "labels": [],
   "contentType": "text",
-  "botCode": "atendimento-geral",
   "text": "Ola",
+  "conversationId": 14,
+  "phone": "+5511933030497",
   "timestamp": 1746144000000
 }
 ```
@@ -53,21 +75,13 @@ X-Webhook-Secret: {bots.webhook_secret}   (se configurado)
 
 ```json
 {
-  "messageId": "msg-002",
-  "conversationId": 45,
-  "contactId": 12,
-  "phone": "+5511999998888",
-  "inboxId": 3,
-  "channelType": "whatsapp",
   "contentType": "audio",
-  "botCode": "atendimento-geral",
   "media": {
     "url": "https://s3minio.infragf.com.br/chatwoot/...",
-    "mimeType": "audio/ogg; codecs=opus",
-    "duration": 10,
+    "mimeType": "audio/ogg",
+    "size": 50000,
     "viewOnce": false
-  },
-  "timestamp": 1746144000000
+  }
 }
 ```
 
@@ -75,38 +89,32 @@ X-Webhook-Secret: {bots.webhook_secret}   (se configurado)
 
 ```json
 {
-  "messageId": "msg-003",
-  "conversationId": 45,
   "contentType": "image",
   "media": {
-    "url": "https://s3minio.infragf.com.br/chatwoot/...",
+    "url": "https://s3minio.infragf.com.br/chatwoot/w30jdm9x...?X-Amz-Signature=...",
     "mimeType": "image/jpeg",
-    "filename": "foto.jpg",
-    "size": 204800,
-    "caption": "Veja essa imagem",
+    "size": 176953,
     "viewOnce": false
-  },
-  "timestamp": 1746144000000
+  }
 }
 ```
+
+URL é assinada (válida por 5 min). Processar imediatamente após receber.
 
 ### view_once
 
 ```json
 {
-  "messageId": "msg-004",
-  "conversationId": 45,
   "contentType": "view_once",
   "media": {
     "url": "",
     "mimeType": "image/jpeg",
     "viewOnce": true
-  },
-  "timestamp": 1746144000000
+  }
 }
 ```
 
-**Invariante**: `media.url` e sempre `""` para view_once. Jamais aparece em log ou payload.
+**Invariante**: `media.url` é sempre `""` para view_once. Jamais aparece em log ou payload.
 
 ### location
 
@@ -123,46 +131,42 @@ X-Webhook-Secret: {bots.webhook_secret}   (se configurado)
 
 ## Campos opcionais por contentType
 
-| contentType | text | media | location | contactCard | adContext | reaction |
-|-------------|------|-------|----------|-------------|-----------|----------|
-| text | sim | - | - | - | - | - |
-| audio | - | sim | - | - | - | - |
-| image | - | sim | - | - | - | - |
-| video | - | sim | - | - | - | - |
-| file | - | sim | - | - | - | - |
-| sticker | - | sim | - | - | - | - |
-| location | - | - | sim | - | - | - |
-| contact_card | - | - | - | sim | - | - |
-| ad | - | - | - | - | sim | - |
-| view_once | - | sim (url='') | - | - | - | - |
-| reaction | - | - | - | - | - | sim |
-| poll | text | - | - | - | - | - |
-| unsupported | - | - | - | - | - | - |
+| contentType | text | media | location |
+|-------------|------|-------|----------|
+| text | sim | - | - |
+| audio | - | sim | - |
+| image | - | sim | - |
+| video | - | sim | - |
+| file | - | sim | - |
+| sticker | - | sim | - |
+| location | - | - | sim |
+| view_once | - | sim (url='') | - |
+| poll | sim | - | - |
+| unsupported | - | - | - |
 
-## Campo media.error (resolucao falhou)
+## media.error (resolução falhou)
 
-Quando middleware nao consegue resolver URL de midia (Chatwoot fora do ar, redirect falhou),
-encaminha ao n8n com `media.url = ''` e `media.error` preenchido. Processamento nao e bloqueado.
+Quando o middleware não consegue resolver a URL de mídia:
 
 ```json
 {
   "contentType": "audio",
   "media": {
     "url": "",
-    "mimeType": "audio/ogg; codecs=opus",
+    "mimeType": "audio/ogg",
     "viewOnce": false,
     "error": "unresolvable"
   }
 }
 ```
 
-Valores possiveis de `media.error`: `"unresolvable"` (unico valor desta versao).
+Quando `media.error` presente: `media.url` sempre `""`. n8n deve tratar ausência de mídia.
 
 ## Garantias do middleware
 
-1. `phone` sempre no formato E.164 (ex: `+5511999998888`)
-2. `media.url` acessivel sem autenticacao (URL MinIO direta), salvo quando `media.error` presente
-3. `media.url = ""` para qualquer `view_once`
-4. Sem duplicatas: mesmo `messageId` entregue no maximo uma vez
+1. `phone` sempre E.164 (`+5511999998888`)
+2. `media.url` URL MinIO direta (sem auth), salvo `media.error` ou `view_once`
+3. `media.url = ""` invariável para `view_once`
+4. Sem duplicatas: mesmo `messageId` retorna `skip: true` nas próximas chamadas
 5. `contentType: "unsupported"` para tipos desconhecidos — nunca erro 500
-6. Quando `media.error` presente, `media.url` e sempre `""` — n8n deve tratar ausencia de midia
+6. `labels` sempre presente (array vazio se sem tags)

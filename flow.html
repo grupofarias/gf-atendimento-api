@@ -277,6 +277,62 @@ body.mode-saida .conn-side.entrada .conn-label,
 body.mode-saida .conn-side.entrada .conn-method,
 body.mode-saida .step-badge.e{opacity:.3}
 
+/* ── N8N BOX (center orchestrator) ── */
+.n8n-box{
+  width:100%;max-width:680px;
+  border:1px solid rgba(244,114,182,.4);
+  border-radius:12px;
+  background:var(--surface);
+  box-shadow:0 0 60px rgba(244,114,182,.06),inset 0 1px 0 rgba(244,114,182,.08);
+  overflow:hidden;
+}
+
+.n8n-header{
+  padding:1rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.875rem;
+  background:rgba(244,114,182,.03);
+}
+.n8n-icon{font-size:1.5rem;line-height:1;text-shadow:0 0 12px rgba(244,114,182,.5)}
+.n8n-info{flex:1}
+.n8n-title{
+  font-family:var(--font-display);
+  font-size:.95rem;font-weight:800;
+  color:var(--pink);letter-spacing:.01em;
+}
+.n8n-url{font-size:.58rem;color:var(--muted);margin-top:.1rem}
+.n8n-badge{
+  font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:.2rem .6rem;border-radius:4px;
+  background:rgba(244,114,182,.1);color:var(--pink);border:1px solid rgba(244,114,182,.3);
+  flex-shrink:0;
+}
+
+.n8n-decision{
+  padding:.875rem 1.25rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:.75rem;flex-wrap:wrap;
+}
+.n8n-decision-icon{font-size:1.1rem;line-height:1;flex-shrink:0;margin-top:.1rem}
+.n8n-decision-info{flex:1;min-width:200px}
+.n8n-decision-title{
+  font-family:var(--font-display);
+  font-size:.75rem;font-weight:700;color:var(--pink);
+  margin-bottom:.35rem;
+}
+.decision-list{display:flex;flex-direction:column;gap:.25rem}
+.decision-item{
+  display:flex;align-items:baseline;gap:.5rem;
+  font-size:.58rem;color:var(--muted);
+}
+.decision-item .tag{
+  font-size:.5rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:.1rem .35rem;border-radius:3px;flex-shrink:0;
+}
+.tag-skip{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.tag-ok{background:rgba(16,185,129,.1);color:var(--entrada);border:1px solid rgba(16,185,129,.2)}
+.tag-out{background:rgba(96,165,250,.1);color:var(--saida);border:1px solid rgba(96,165,250,.2)}
+
 /* ── MIDDLEWARE BOX ── */
 .middleware{
   width:100%;max-width:680px;
@@ -338,6 +394,43 @@ body.mode-saida .step-badge.e{opacity:.3}
   font-size:.75rem;
   flex-shrink:0;
 }
+
+/* action endpoints */
+.endpoints{
+  padding:.875rem 1.25rem;
+  border-bottom:1px solid var(--border);
+}
+.ep-title{
+  font-family:var(--font-display);
+  font-size:.7rem;font-weight:700;
+  color:var(--amber);
+  margin-bottom:.6rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.ep-title-icon{font-size:.9rem}
+.ep-grid{display:flex;flex-wrap:wrap;gap:.375rem}
+.ep{
+  display:flex;align-items:center;gap:.35rem;
+  padding:.3rem .6rem;
+  background:rgba(245,158,11,.04);
+  border:1px solid rgba(245,158,11,.12);
+  border-radius:6px;
+  font-size:.53rem;
+  color:var(--muted);
+}
+.ep-method{
+  font-weight:700;
+  font-size:.5rem;
+  letter-spacing:.06em;
+  padding:.1rem .3rem;
+  border-radius:3px;
+  flex-shrink:0;
+}
+.ep-method.post{background:rgba(16,185,129,.1);color:var(--entrada)}
+.ep-method.patch{background:rgba(245,158,11,.1);color:var(--amber)}
+.ep-method.get{background:rgba(96,165,250,.1);color:var(--saida)}
+.ep-method.delete{background:rgba(239,68,68,.1);color:var(--red)}
+.ep-path{color:var(--text);font-size:.53rem}
 
 /* storage row */
 .storage-row{
@@ -403,27 +496,6 @@ body.mode-saida .step-badge.e{opacity:.3}
   flex-shrink:0;
 }
 
-/* flow-context strip (above/below middleware) */
-.strip{
-  width:100%;max-width:680px;
-  padding:.5rem 1rem;
-  border-radius:6px;
-  font-size:.58rem;
-  letter-spacing:.05em;
-  display:flex;align-items:center;gap:.6rem;
-  margin:0;
-}
-.strip.in{
-  background:rgba(16,185,129,.05);
-  border:1px solid rgba(16,185,129,.15);
-  color:var(--entrada);
-}
-.strip.out{
-  background:rgba(96,165,250,.05);
-  border:1px solid rgba(96,165,250,.15);
-  color:var(--saida);
-}
-
 /* ── LEGEND ── */
 footer{
   position:relative;z-index:1;
@@ -452,7 +524,7 @@ footer{
 
 <header>
   <div class="logo">gf-atendimento-<em>api</em></div>
-  <div class="subtitle">Arquitetura de Fluxo de Dados · v0.1</div>
+  <div class="subtitle">Arquitetura de Fluxo de Dados · v0.2</div>
   <div class="controls">
     <button class="btn entrada" onclick="setMode('entrada')">↓ ENTRADA</button>
     <button class="btn saida" onclick="setMode('saida')">↑ SAÍDA</button>
@@ -472,7 +544,7 @@ footer{
     <div class="node-badge">EXTERNO</div>
   </div>
 
-  <!-- CONN 1/11 -->
+  <!-- CONN 1/9 -->
   <div class="connector">
     <div class="conn-side entrada">
       <div class="step-badge e">1</div>
@@ -487,7 +559,7 @@ footer{
       </div>
     </div>
     <div class="conn-side saida">
-      <div class="step-badge s">11</div>
+      <div class="step-badge s">9</div>
       <div class="conn-label">Mensagem entregue ao cliente</div>
     </div>
   </div>
@@ -502,7 +574,7 @@ footer{
     <div class="node-badge">GATEWAY</div>
   </div>
 
-  <!-- CONN 2/10 -->
+  <!-- CONN 2/8 -->
   <div class="connector">
     <div class="conn-side entrada">
       <div class="step-badge e">2</div>
@@ -517,7 +589,7 @@ footer{
       </div>
     </div>
     <div class="conn-side saida">
-      <div class="step-badge s">10</div>
+      <div class="step-badge s">8</div>
       <div class="conn-label">Encaminha resposta ao WhatsApp</div>
     </div>
   </div>
@@ -532,12 +604,12 @@ footer{
     <div class="node-badge">CRM</div>
   </div>
 
-  <!-- CONN 3/9 -->
+  <!-- CONN 3/7 — Chatwoot ↔ n8n (DIRECT) -->
   <div class="connector">
     <div class="conn-side entrada">
       <div class="step-badge e">3</div>
-      <div class="conn-label">POST /webhooks/chatwoot</div>
-      <div class="conn-method">webhook · message_created</div>
+      <div class="conn-label">Webhook POST direto ao n8n</div>
+      <div class="conn-method">message_created · x-chatwoot-signature</div>
     </div>
     <div class="conn-center">
       <div class="conn-pipe">
@@ -548,9 +620,64 @@ footer{
       </div>
     </div>
     <div class="conn-side saida">
-      <div class="step-badge s">9</div>
+      <div class="step-badge s">7</div>
       <div class="conn-label">POST /api/v1/accounts/:id/messages</div>
-      <div class="conn-method">Chatwoot API · send_message</div>
+      <div class="conn-method">Chatwoot API · envia resposta ao CRM</div>
+    </div>
+  </div>
+
+  <!-- ── N8N (ORQUESTRADOR CENTRAL) ── -->
+  <div class="n8n-box">
+    <div class="n8n-header">
+      <div class="n8n-icon">🤖</div>
+      <div class="n8n-info">
+        <div class="n8n-title">n8n · Orquestrador IA</div>
+        <div class="n8n-url">n8n.grupofarias.com.br · processamento com IA</div>
+      </div>
+      <div class="n8n-badge">IA / ORQUESTRADOR</div>
+    </div>
+
+    <div class="n8n-decision">
+      <div class="n8n-decision-icon">⚖️</div>
+      <div class="n8n-decision-info">
+        <div class="n8n-decision-title">Lógica de Decisão após receber InternalMessage</div>
+        <div class="decision-list">
+          <div class="decision-item">
+            <span class="tag tag-skip">SKIP</span>
+            <span>skip=true retornado pelo middleware → ignora mensagem</span>
+          </div>
+          <div class="decision-item">
+            <span class="tag tag-out">OUTGOING</span>
+            <span>messageType=outgoing (bot falando) → ignora, evita loop</span>
+          </div>
+          <div class="decision-item">
+            <span class="tag tag-ok">INCOMING</span>
+            <span>messageType=incoming → processa com IA e monta resposta</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONN 4/6 — n8n ↔ middleware -->
+  <div class="connector">
+    <div class="conn-side entrada">
+      <div class="step-badge e">4</div>
+      <div class="conn-label">POST /normalize · header x-api-key</div>
+      <div class="conn-method">raw webhook payload do Chatwoot</div>
+    </div>
+    <div class="conn-center">
+      <div class="conn-pipe">
+        <div class="packet pe" style="animation-delay:.45s"></div>
+        <div class="packet pe" style="animation-delay:1.55s"></div>
+        <div class="packet ps" style="animation-delay:1s"></div>
+        <div class="packet ps" style="animation-delay:2.1s"></div>
+      </div>
+    </div>
+    <div class="conn-side saida">
+      <div class="step-badge s">6</div>
+      <div class="conn-label">POST /conversations/:id/messages</div>
+      <div class="conn-method">header: x-api-key · body: content + private?</div>
     </div>
   </div>
 
@@ -565,14 +692,8 @@ footer{
       <div class="mw-badge">MIDDLEWARE</div>
     </div>
 
-    <!-- pipeline entrada -->
+    <!-- pipeline /normalize (entrada) -->
     <div class="pipeline">
-      <div class="ps">
-        <div class="ps-icon">🚫</div>
-        <div class="ps-name">Filtro</div>
-        <div class="ps-desc">Descarta <em>outgoing</em> e mensagens <em>private</em></div>
-      </div>
-      <div class="ps-arrow">→</div>
       <div class="ps">
         <div class="ps-icon">🔄</div>
         <div class="ps-name">Dedup</div>
@@ -586,9 +707,65 @@ footer{
       </div>
       <div class="ps-arrow">→</div>
       <div class="ps">
-        <div class="ps-icon">📤</div>
-        <div class="ps-name">Forward</div>
-        <div class="ps-desc">POST payload normalizado ao webhook do n8n</div>
+        <div class="ps-icon">🗃️</div>
+        <div class="ps-name">Upsert</div>
+        <div class="ps-desc">Contact + Conversation no PostgreSQL</div>
+      </div>
+      <div class="ps-arrow">→</div>
+      <div class="ps">
+        <div class="ps-icon">📨</div>
+        <div class="ps-name">Retorno</div>
+        <div class="ps-desc">InternalMessage JSON (ou {skip:true, reason})</div>
+      </div>
+    </div>
+
+    <!-- action endpoints -->
+    <div class="endpoints">
+      <div class="ep-title">
+        <span class="ep-title-icon">🔀</span>
+        Endpoints de Ação (n8n pode chamar a qualquer momento)
+      </div>
+      <div class="ep-grid">
+        <div class="ep">
+          <span class="ep-method post">POST</span>
+          <span class="ep-path">/normalize</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method post">POST</span>
+          <span class="ep-path">/conversations/:id/messages</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method post">POST</span>
+          <span class="ep-path">/conversations/:id/handoff</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method patch">PATCH</span>
+          <span class="ep-path">/conversations/:id/status</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method post">POST</span>
+          <span class="ep-path">/conversations/:id/labels</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method delete">DELETE</span>
+          <span class="ep-path">/conversations/:id/labels</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method get">GET</span>
+          <span class="ep-path">/conversations/:id/agents</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method get">GET</span>
+          <span class="ep-path">/conversations/:id/teams</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method post">POST</span>
+          <span class="ep-path">/events/conversation-updated</span>
+        </div>
+        <div class="ep">
+          <span class="ep-method post">POST</span>
+          <span class="ep-path">/events/conversation-status-changed</span>
+        </div>
       </div>
     </div>
 
@@ -605,7 +782,7 @@ footer{
         <div class="si-emoji">🐘</div>
         <div class="si-info">
           <div class="si-name">PostgreSQL</div>
-          <div class="si-desc">chatwoot_accounts · bots · inbox_config · conversations · contacts</div>
+          <div class="si-desc">accounts · bots · inbox_config · conversations · contacts · handoff_log · processed_events</div>
         </div>
       </div>
       <div class="si">
@@ -629,45 +806,12 @@ footer{
     </div>
   </div>
 
-  <!-- CONN 5/7 -->
-  <div class="connector">
-    <div class="conn-side entrada">
-      <div class="step-badge e">5</div>
-      <div class="conn-label">POST webhook · InternalMessage JSON</div>
-      <div class="conn-method">contentType · phone · media · conversationId</div>
-    </div>
-    <div class="conn-center">
-      <div class="conn-pipe">
-        <div class="packet pe" style="animation-delay:.45s"></div>
-        <div class="packet pe" style="animation-delay:1.55s"></div>
-        <div class="packet ps" style="animation-delay:1s"></div>
-        <div class="packet ps" style="animation-delay:2.1s"></div>
-      </div>
-    </div>
-    <div class="conn-side saida">
-      <div class="step-badge s">7</div>
-      <div class="conn-label">POST /conversations/:id/messages</div>
-      <div class="conn-method">header: x-api-key · body: content + private?</div>
-    </div>
-  </div>
-
-  <!-- ── N8N ── -->
-  <div class="node layer-ai">
-    <div class="node-icon">🤖</div>
-    <div class="node-body">
-      <div class="node-name">n8n</div>
-      <div class="node-desc">n8n.grupofarias.com.br · webhook/testeApiGfAtendimento · processamento com IA</div>
-    </div>
-    <div class="node-badge">IA</div>
-  </div>
-
-  <!-- step 6/8 note -->
+  <!-- step 5 note -->
   <div class="step-label">
-    <div class="sl-badge-e">6</div>
+    <div class="sl-badge-e">5</div>
     <div class="sl-line"></div>
-    <div class="sl-text">n8n processa mensagem com IA e monta a resposta</div>
+    <div class="sl-text">middleware retorna InternalMessage · n8n decide: skip / outgoing → ignora · incoming → processa com IA</div>
     <div class="sl-line"></div>
-    <div class="sl-badge-s">8</div>
   </div>
 
 </main>
@@ -676,9 +820,9 @@ footer{
   <div class="ld-item"><div class="ld" style="background:var(--green)"></div>Cliente</div>
   <div class="ld-item"><div class="ld" style="background:var(--cyan)"></div>Gateway</div>
   <div class="ld-item"><div class="ld" style="background:var(--orange)"></div>CRM</div>
+  <div class="ld-item"><div class="ld" style="background:var(--pink)"></div>IA / Orquestrador</div>
   <div class="ld-item"><div class="ld" style="background:var(--amber)"></div>Middleware</div>
   <div class="ld-item"><div class="ld" style="background:var(--purple)"></div>Storage</div>
-  <div class="ld-item"><div class="ld" style="background:var(--pink)"></div>IA</div>
   <div class="ld-sep">·</div>
   <div class="ld-item"><div class="ld" style="background:var(--entrada)"></div>Fluxo Entrada</div>
   <div class="ld-item"><div class="ld" style="background:var(--saida)"></div>Fluxo Saída</div>

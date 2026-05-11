@@ -43,14 +43,15 @@ Entrega valor imediato: analistas conseguem construir fluxos de atendimento.
    **Then** n8n recebe `contentType: 'view_once'`, `media.url: ''`, `media.viewOnce: true`.
    URL nunca aparece em nenhum log ou payload.
 
-5. **Given** mensagem `outgoing` (enviada por agente) ou nota privada (`private: true`) chega no webhook,
-   **When** middleware filtra,
-   **Then** webhook retorna 200 sem encaminhar ao n8n. Nenhum processamento ocorre.
+5. **Given** mensagem `outgoing` (enviada por agente) chega no webhook do Chatwoot,
+   **When** n8n chama `POST /normalize`,
+   **Then** middleware retorna `skip: false` com `messageType: "outgoing"`. O n8n decide ignorar.
+   Middleware não filtra por negócio — apenas normaliza.
 
 6. **Given** mesmo evento de webhook chega duas vezes (Chatwoot retentativa),
-   **When** middleware verifica dedup,
-   **Then** primeira ocorrência é encaminhada ao n8n. Segunda é descartada silenciosamente.
-   n8n não recebe duplicata.
+   **When** n8n chama `POST /normalize` com o mesmo payload,
+   **Then** segunda chamada retorna `{ skip: true, reason: "duplicate" }`.
+   n8n não processa duplicata.
 
 ---
 
@@ -104,14 +105,13 @@ mensagens subsequentes nessa conversa.
    **Then** conversa no Chatwoot fica com status "pending", time "comercial" é atribuído,
    bot_active=false no banco, evento registrado em handoff_log com reason.
 
-2. **Given** agente humano assume conversa diretamente pelo painel do Chatwoot (sem passar pelo n8n),
-   **When** Chatwoot dispara webhook `conversation_updated` com assignee preenchido,
-   **Then** middleware automaticamente seta bot_active=false para essa conversa.
-   Bot para de responder sem precisar de intervenção manual.
+2. **Given** agente humano assume conversa diretamente pelo painel do Chatwoot,
+   **When** Chatwoot dispara `conversation_updated` e n8n chama `POST /events/conversation-updated` com `{ conversationId, hasAssignee: true }`,
+   **Then** middleware seta bot_active=false para essa conversa.
 
-3. **Given** conversa foi resolvida e cliente manda nova mensagem dias depois,
-   **When** Chatwoot reabre a conversa (`conversation_status_changed` com status "open"),
-   **Then** middleware reativa bot_active=true. Bot retoma o atendimento automaticamente.
+3. **Given** conversa foi resolvida e cliente manda nova mensagem,
+   **When** Chatwoot dispara `conversation_status_changed` e n8n chama `POST /events/conversation-status-changed` com `{ conversationId, status: "open" }`,
+   **Then** middleware reativa bot_active=true. Bot retoma o atendimento.
 
 ---
 
