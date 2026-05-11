@@ -13,6 +13,14 @@ export interface ChatwootWebhookPayload {
   content_type?: string;
   created_at?: number | string;
   channel?: string;
+  account?: {
+    id?: number;
+    name?: string;
+  };
+  inbox?: {
+    id?: number;
+    name?: string;
+  };
   conversation?: {
     id: number;
     inbox_id: number;
@@ -28,6 +36,7 @@ export interface ChatwootWebhookPayload {
   sender?: {
     type?: string;
     phone_number?: string;
+    name?: string;
   };
   attachments?: Array<{
     file_type?: string;
@@ -92,6 +101,10 @@ export class NormalizerService {
         isPrivate: payload.private === true,
         senderType: payload.sender?.type,
         labels: payload.conversation?.labels ?? [],
+        accountId: payload.account?.id ?? 0,
+        contactName: payload.sender?.name ?? payload.contact?.name,
+        inboxName: payload.inbox?.name,
+        chatwootUrl: '',
         text: contentType === 'text' || contentType === 'poll' ? (payload.content ?? undefined) : undefined,
         media,
         location: contentType === 'location'

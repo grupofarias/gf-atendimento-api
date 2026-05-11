@@ -42,6 +42,10 @@ export interface InternalMessage {
   isPrivate: boolean;
   senderType?: string;
   labels: string[];
+  accountId: number;
+  contactName?: string;
+  inboxName?: string;
+  chatwootUrl: string;
   text?: string;
   media?: MediaInfo;
   location?: { latitude: number; longitude: number; label?: string };

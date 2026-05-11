@@ -67,12 +67,18 @@ export class NormalizeService {
 
     void conversation;
 
+    const baseUrl = inboxConfig.account?.baseUrl ?? '';
+    const chatwootUrl = baseUrl
+      ? `${baseUrl}/app/accounts/${inboxConfig.accountId}/conversations/${normalized.message.conversationId}`
+      : '';
+
     return {
       skip: false,
       message: {
         ...normalized.message,
         contactId: contact.id,
         botCode: inboxConfig.bot.code,
+        chatwootUrl,
       },
     };
   }
@@ -83,7 +89,7 @@ export class NormalizeService {
 
     const config = await this.inboxConfigRepo.findOne({
       where: { chatwootInboxId, active: true },
-      relations: ['bot'],
+      relations: ['bot', 'account'],
     });
 
     if (config) {
