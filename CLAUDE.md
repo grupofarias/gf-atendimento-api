@@ -43,3 +43,7 @@ Key artifacts for this feature:
 - Se houver arquivos `.md` de produto/negócio (escopo, PRD), leia-os antes de implementar — são fonte de verdade para regras de negócio.
 - Não altere PRDs sem pedido explícito.
 - Se identificar inconsistências entre código e PRD, sinalize com clareza.
+
+### Git e Pull Requests
+- **Antes de fazer push para qualquer branch com PR**, verificar se o PR já foi mergeado: `gh pr view --json state,mergedAt`. Se já mergeado, NÃO fazer push na branch — criar novo commit em develop ou abrir novo PR.
+- Nunca adicionar commits a uma branch cujo PR já foi mergeado.
