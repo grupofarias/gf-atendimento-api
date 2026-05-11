@@ -11,7 +11,6 @@ import { Conversation } from './entities/conversation.entity';
 import { EvolutionInstance } from './entities/evolution-instance.entity';
 import { HandoffLog } from './entities/handoff-log.entity';
 import { InboxConfig } from './entities/inbox-config.entity';
-import { Outbox } from './entities/outbox.entity';
 import { ProcessedEvent } from './entities/processed-event.entity';
 
 export const AppDataSource = new DataSource({
@@ -27,8 +26,7 @@ export const AppDataSource = new DataSource({
     Contact,
     Conversation,
     HandoffLog,
-    Outbox,
     ProcessedEvent,
   ],
-  migrations: ['dist/database/migrations/*.js'],
+  migrations: ['src/database/migrations/*.ts'],
 });

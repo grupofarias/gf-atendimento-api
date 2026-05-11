@@ -103,4 +103,32 @@ export class ChatwootAdapter {
 
     await client.patch(`/conversations/${chatwootConversationId}`, { status });
   }
+
+  async getAgents(accountId: number, search?: string): Promise<unknown[]> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const res = await client.get<unknown[]>('/agents', { params: search ? { q: search } : undefined });
+    return res.data;
+  }
+
+  async getTeams(accountId: number): Promise<unknown[]> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const res = await client.get<unknown[]>('/teams');
+    return res.data;
+  }
+
+  async addLabels(chatwootConversationId: number, accountId: number, labels: string[]): Promise<void> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    await client.post(`/conversations/${chatwootConversationId}/labels`, { labels });
+  }
+
+  async removeLabels(chatwootConversationId: number, accountId: number, labelsToRemove: string[]): Promise<void> {
+    const config = await this.loadAccountConfig(accountId);
+    const client = this.buildClient(config);
+    const current = await client.get<{ payload: string[] }>(`/conversations/${chatwootConversationId}/labels`);
+    const remaining = (current.data.payload ?? []).filter((l) => !labelsToRemove.includes(l));
+    await client.post(`/conversations/${chatwootConversationId}/labels`, { labels: remaining });
+  }
 }
