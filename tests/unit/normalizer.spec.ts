@@ -25,7 +25,7 @@ describe('NormalizerService', () => {
     svc = new NormalizerService();
   });
 
-  it('normaliza mensagem de texto', () => {
+  it('normaliza mensagem de texto incoming', () => {
     const result = svc.normalize(basePayload(), inboxConfig);
     expect(result.filtered).toBe(false);
     if (result.filtered) return;
@@ -33,34 +33,33 @@ describe('NormalizerService', () => {
     expect(result.message.text).toBe('Ola');
     expect(result.message.phone).toBe('+5511999998888');
     expect(result.message.conversationId).toBe(45);
+    expect(result.message.messageType).toBe('incoming');
+    expect(result.message.isPrivate).toBe(false);
+    expect(result.message.event).toBe('message_created');
   });
 
-  it('filtra mensagem outgoing', () => {
+  it('normaliza mensagem outgoing sem filtrar', () => {
     const result = svc.normalize(basePayload({ message_type: 'outgoing' }), inboxConfig);
-    expect(result.filtered).toBe(true);
+    expect(result.filtered).toBe(false);
+    if (result.filtered) return;
+    expect(result.message.messageType).toBe('outgoing');
   });
 
-  it('filtra mensagem privada', () => {
+  it('normaliza mensagem privada sem filtrar', () => {
     const result = svc.normalize(basePayload({ private: true }), inboxConfig);
-    expect(result.filtered).toBe(true);
+    expect(result.filtered).toBe(false);
+    if (result.filtered) return;
+    expect(result.message.isPrivate).toBe(true);
   });
 
-  it('filtra sender com type=agent', () => {
+  it('normaliza sender type=agent sem filtrar', () => {
     const result = svc.normalize(
       basePayload({ sender: { type: 'agent', phone_number: '+5511999998888' } }),
       inboxConfig,
     );
-    expect(result.filtered).toBe(true);
-  });
-
-  it('normaliza timestamp ISO string (canal API do Chatwoot)', () => {
-    const result = svc.normalize(
-      basePayload({ created_at: '2026-05-11T15:23:58.009Z' as unknown as number }),
-      inboxConfig,
-    );
     expect(result.filtered).toBe(false);
     if (result.filtered) return;
-    expect(result.message.timestamp).toBe(new Date('2026-05-11T15:23:58.009Z').getTime());
+    expect(result.message.senderType).toBe('agent');
   });
 
   it('nao filtra quando sender.type ausente (canal API)', () => {
@@ -77,14 +76,17 @@ describe('NormalizerService', () => {
       inboxConfig,
     );
     expect(result.filtered).toBe(true);
+    expect((result as { filtered: true; reason: string }).reason).toBe('group_message');
   });
 
-  it('filtra evento nao message_created', () => {
+  it('normaliza qualquer evento sem filtrar', () => {
     const result = svc.normalize(
       basePayload({ event: 'conversation_updated' }),
       inboxConfig,
     );
-    expect(result.filtered).toBe(true);
+    expect(result.filtered).toBe(false);
+    if (result.filtered) return;
+    expect(result.message.event).toBe('conversation_updated');
   });
 
   it('normaliza audio com media', () => {
@@ -114,5 +116,22 @@ describe('NormalizerService', () => {
     if (result.filtered) return;
     expect(result.message.media?.url).toBe('');
     expect(result.message.media?.viewOnce).toBe(true);
+  });
+
+  it('normaliza timestamp Unix number', () => {
+    const result = svc.normalize(basePayload({ created_at: 1746144000 }), inboxConfig);
+    expect(result.filtered).toBe(false);
+    if (result.filtered) return;
+    expect(result.message.timestamp).toBe(1746144000 * 1000);
+  });
+
+  it('normaliza timestamp ISO string (canal API do Chatwoot)', () => {
+    const result = svc.normalize(
+      basePayload({ created_at: '2026-05-11T15:23:58.009Z' as unknown as number }),
+      inboxConfig,
+    );
+    expect(result.filtered).toBe(false);
+    if (result.filtered) return;
+    expect(result.message.timestamp).toBe(new Date('2026-05-11T15:23:58.009Z').getTime());
   });
 });

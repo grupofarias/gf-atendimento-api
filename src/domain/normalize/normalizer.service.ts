@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { ChannelType, ContentType, InternalMessage, MediaInfo } from '@domain/types/internal-message.type';
+import { ChannelType, ContentType, InternalMessage, MediaInfo, MessageDirection } from '@domain/types/internal-message.type';
 
 import { isGroupJid, normalizePhone } from './phone.util';
 
@@ -62,23 +62,8 @@ export class NormalizerService {
     payload: ChatwootWebhookPayload,
     inboxConfig: { chatwootInboxId: number; channelType: ChannelType },
   ): NormalizerResult {
-    if (payload.event !== 'message_created') {
-      return { filtered: true, reason: `event=${payload.event}` };
-    }
-
-    if (payload.message_type !== 'incoming') {
-      return { filtered: true, reason: `message_type=${payload.message_type}` };
-    }
-
-    if (payload.private === true) {
-      return { filtered: true, reason: 'private=true' };
-    }
-
-    if (payload.sender?.type === 'agent') {
-      return { filtered: true, reason: 'sender.type=agent' };
-    }
-
     const rawPhone = payload.sender?.phone_number ?? payload.contact?.phone_number ?? '';
+
     if (isGroupJid(rawPhone)) {
       return { filtered: true, reason: 'group_message' };
     }
@@ -89,9 +74,12 @@ export class NormalizerService {
       ? this.buildMediaInfo(payload, contentType)
       : undefined;
 
+    const messageType = this.resolveMessageType(payload.message_type);
+
     return {
       filtered: false,
       message: {
+        event: payload.event,
         messageId: String(payload.id ?? ''),
         conversationId: payload.conversation?.id ?? 0,
         contactId: payload.contact?.id,
@@ -99,6 +87,9 @@ export class NormalizerService {
         inboxId: inboxConfig.chatwootInboxId,
         channelType: inboxConfig.channelType,
         contentType,
+        messageType,
+        isPrivate: payload.private === true,
+        senderType: payload.sender?.type,
         text: contentType === 'text' || contentType === 'poll' ? (payload.content ?? undefined) : undefined,
         media,
         location: contentType === 'location'
@@ -111,6 +102,12 @@ export class NormalizerService {
         timestamp: this.resolveTimestamp(payload.created_at),
       },
     };
+  }
+
+  private resolveMessageType(messageType?: string): MessageDirection {
+    if (messageType === 'outgoing') return 'outgoing';
+    if (messageType === 'activity') return 'activity';
+    return 'incoming';
   }
 
   private resolveTimestamp(created_at?: number | string): number {

@@ -68,11 +68,22 @@ describe('NormalizeService', () => {
     expect(result).toEqual({ skip: true, reason: 'inbox_not_found' });
   });
 
-  it('retorna skip quando normalizer filtra a mensagem', async () => {
+  it('normaliza mensagem outgoing sem skip (n8n decide)', async () => {
     inboxConfigRepo.findOne.mockResolvedValue(inboxConfig);
+    dedup.isDuplicate.mockResolvedValue(false);
+    contacts.upsertContact.mockResolvedValue({ id: 99 } as never);
+    conversations.upsertConversation.mockResolvedValue({ id: 55 } as never);
     const result = await svc.process({ ...basePayload, message_type: 'outgoing' });
+    expect(result.skip).toBe(false);
+    if (result.skip) return;
+    expect(result.message.messageType).toBe('outgoing');
+  });
+
+  it('retorna skip quando mensagem de grupo', async () => {
+    inboxConfigRepo.findOne.mockResolvedValue(inboxConfig);
+    const result = await svc.process({ ...basePayload, sender: { phone_number: '120363000@g.us' } });
     expect(result.skip).toBe(true);
-    expect((result as { skip: true; reason: string }).reason).toContain('message_type');
+    expect((result as { skip: true; reason: string }).reason).toBe('group_message');
   });
 
   it('retorna skip quando mensagem duplicada', async () => {
