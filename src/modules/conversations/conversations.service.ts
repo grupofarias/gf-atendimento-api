@@ -16,12 +16,19 @@ export class ConversationsService {
   async upsertConversation(
     chatwootConversationId: number,
     inboxId: number,
-    contactId: number,
+    contactId: number | null,
+    accountId?: number | null,
   ): Promise<Conversation> {
     const existing = await this.repo.findOne({ where: { chatwootConversationId } });
-    if (existing) return existing;
+    if (existing) {
+      if (existing.accountId == null && accountId != null) {
+        await this.repo.update({ chatwootConversationId }, { accountId });
+        existing.accountId = accountId;
+      }
+      return existing;
+    }
 
-    const conversation = this.repo.create({ chatwootConversationId, inboxId, contactId });
+    const conversation = this.repo.create({ chatwootConversationId, inboxId, contactId, accountId: accountId ?? null });
     try {
       return await this.repo.save(conversation);
     } catch {

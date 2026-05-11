@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 
 import { Contact } from './contact.entity';
-import { InboxConfig } from './inbox-config.entity';
 
 export type ConversationStatus = 'open' | 'pending' | 'resolved' | 'snoozed';
 
@@ -26,8 +25,11 @@ export class Conversation {
   @Column({ name: 'inbox_id', type: 'integer' })
   inboxId!: number;
 
-  @Column({ name: 'contact_id', type: 'integer' })
-  contactId!: number;
+  @Column({ name: 'account_id', type: 'integer', nullable: true })
+  accountId!: number | null;
+
+  @Column({ name: 'contact_id', type: 'integer', nullable: true })
+  contactId!: number | null;
 
   @Column({ name: 'bot_active', type: 'boolean', default: true })
   botActive!: boolean;
@@ -39,13 +41,9 @@ export class Conversation {
   })
   status!: ConversationStatus;
 
-  @ManyToOne(() => InboxConfig)
-  @JoinColumn({ name: 'inbox_id', referencedColumnName: 'chatwootInboxId' })
-  inbox!: InboxConfig;
-
-  @ManyToOne(() => Contact)
+  @ManyToOne(() => Contact, { nullable: true })
   @JoinColumn({ name: 'contact_id' })
-  contact!: Contact;
+  contact!: Contact | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

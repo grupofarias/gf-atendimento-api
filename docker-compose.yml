@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -41,8 +39,7 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       BACKUP_BUCKET: gf-atendimento-backups
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     deploy:
       restart_policy:
         condition: on-failure
@@ -66,12 +63,9 @@ services:
       NODE_ENV: production
       PORT: 3200
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - postgres
+      - redis
     deploy:
-      replicas: 2
       restart_policy:
         condition: on-failure
 

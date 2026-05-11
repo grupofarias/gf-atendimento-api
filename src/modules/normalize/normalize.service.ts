@@ -5,8 +5,9 @@ import { Repository } from 'typeorm';
 import { DedupService } from '@domain/dedup/dedup.service';
 import { MediaResolverService } from '@domain/media/media-resolver.service';
 import { ChatwootWebhookPayload, NormalizerService } from '@domain/normalize/normalizer.service';
+import { ChannelType } from '@domain/types/internal-message.type';
 import { InternalMessage } from '@domain/types/internal-message.type';
-import { InboxConfig } from '@database/entities/inbox-config.entity';
+import { ChatwootAccount } from '@database/entities/chatwoot-account.entity';
 import { ContactsService } from '@modules/contacts/contacts.service';
 import { ConversationsService } from '@modules/conversations/conversations.service';
 
@@ -14,15 +15,23 @@ export type NormalizeResult =
   | { skip: true; reason: string }
   | { skip: false; botActive: boolean; message: InternalMessage };
 
+const CHANNEL_MAP: Record<string, ChannelType> = {
+  'Channel::Whatsapp': 'whatsapp',
+  'Channel::WebWidget': 'webchat',
+  'Channel::Instagram': 'instagram',
+  'Channel::FacebookPage': 'facebook',
+  'Channel::Api': 'api',
+};
+
 @Injectable()
 export class NormalizeService {
   private readonly logger = new Logger(NormalizeService.name);
-  private readonly inboxCache = new Map<number, { config: InboxConfig; expiresAt: number }>();
+  private readonly accountCache = new Map<number, { account: ChatwootAccount; expiresAt: number }>();
   private readonly cacheTtlMs = 5 * 60 * 1000;
 
   constructor(
-    @InjectRepository(InboxConfig)
-    private readonly inboxConfigRepo: Repository<InboxConfig>,
+    @InjectRepository(ChatwootAccount)
+    private readonly accountRepo: Repository<ChatwootAccount>,
     private readonly normalizer: NormalizerService,
     private readonly dedup: DedupService,
     private readonly mediaResolver: MediaResolverService,
@@ -34,13 +43,18 @@ export class NormalizeService {
     const chatwootInboxId = payload.conversation?.inbox_id;
     if (!chatwootInboxId) return { skip: true, reason: 'missing_inbox_id' };
 
-    const inboxConfig = await this.loadInboxConfig(chatwootInboxId);
-    if (!inboxConfig) {
-      this.logger.warn(`InboxConfig not found inboxId=${chatwootInboxId}`);
-      return { skip: true, reason: 'inbox_not_found' };
+    const accountId = payload.account?.id;
+    if (!accountId) return { skip: true, reason: 'missing_account_id' };
+
+    const account = await this.loadAccount(accountId);
+    if (!account) {
+      this.logger.warn(`ChatwootAccount not found accountId=${accountId}`);
+      return { skip: true, reason: 'account_not_found' };
     }
 
-    const normalized = this.normalizer.normalize(payload, inboxConfig);
+    const channelType: ChannelType = CHANNEL_MAP[payload.channel ?? ''] ?? 'api';
+
+    const normalized = this.normalizer.normalize(payload, { chatwootInboxId, channelType });
     if (normalized.filtered) {
       this.logger.debug(`Filtered reason=${normalized.reason}`);
       return { skip: true, reason: normalized.reason };
@@ -57,7 +71,7 @@ export class NormalizeService {
 
     const contact = hasPhone
       ? await this.contacts.upsertContact(
-          inboxConfig.accountId,
+          accountId,
           normalized.message.phone,
           payload.contact?.id,
         )
@@ -66,12 +80,12 @@ export class NormalizeService {
     const conversation = await this.conversations.upsertConversation(
       normalized.message.conversationId,
       normalized.message.inboxId,
-      contact?.id ?? 0,
+      contact?.id ?? null,
+      accountId,
     );
 
-    const baseUrl = inboxConfig.account?.baseUrl ?? '';
-    const chatwootUrl = baseUrl
-      ? `${baseUrl}/app/accounts/${inboxConfig.accountId}/conversations/${normalized.message.conversationId}`
+    const chatwootUrl = account.baseUrl
+      ? `${account.baseUrl}/app/accounts/${accountId}/conversations/${normalized.message.conversationId}`
       : '';
 
     return {
@@ -85,21 +99,18 @@ export class NormalizeService {
     };
   }
 
-  private async loadInboxConfig(chatwootInboxId: number): Promise<InboxConfig | null> {
-    const cached = this.inboxCache.get(chatwootInboxId);
-    if (cached && cached.expiresAt > Date.now()) return cached.config;
+  private async loadAccount(accountId: number): Promise<ChatwootAccount | null> {
+    const cached = this.accountCache.get(accountId);
+    if (cached && cached.expiresAt > Date.now()) return cached.account;
 
-    const config = await this.inboxConfigRepo.findOne({
-      where: { chatwootInboxId, active: true },
-      relations: ['account'],
-    });
+    const account = await this.accountRepo.findOne({ where: { accountId } });
 
-    if (config) {
-      this.inboxCache.set(chatwootInboxId, { config, expiresAt: Date.now() + this.cacheTtlMs });
+    if (account) {
+      this.accountCache.set(accountId, { account, expiresAt: Date.now() + this.cacheTtlMs });
     } else {
-      this.inboxCache.delete(chatwootInboxId);
+      this.accountCache.delete(accountId);
     }
 
-    return config;
+    return account;
   }
 }

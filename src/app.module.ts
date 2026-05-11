@@ -13,6 +13,7 @@ import { HandoffLog } from './database/entities/handoff-log.entity';
 import { InboxConfig } from './database/entities/inbox-config.entity';
 import { ProcessedEvent } from './database/entities/processed-event.entity';
 import { RedisModule } from './common/redis/redis.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { ConversationsModule } from './modules/conversations/conversations.module';
 import { EventsModule } from './modules/events/events.module';
 import { HandoffModule } from './modules/handoff/handoff.module';
@@ -50,6 +51,7 @@ import { NormalizeModule } from './modules/normalize/normalize.module';
     TypeOrmModule.forFeature([ProcessedEvent]),
     ScheduleModule.forRoot(),
     RedisModule,
+    AdminModule,
     NormalizeModule,
     EventsModule,
     ConversationsModule,

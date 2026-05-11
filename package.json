@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "build": "nest build",
+    "prod": "docker compose down 2>/dev/null; npm run build && docker compose up --build -d",
+    "prod:swarm": "docker info --format '{{.Swarm.LocalNodeState}}' | grep -q active || docker swarm init; docker stack rm gf-atendimento 2>/dev/null; sleep 5 && npm run build && docker build -t gf-atendimento-api:prod . && docker build -t gf-atendimento-backup:prod docker/backup && set -a && . ./.env && set +a && docker stack deploy -c docker-compose.yml -c docker-compose.prod.yml gf-atendimento",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -17,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "migration:generate": "node_modules/.bin/typeorm-ts-node-commonjs -d src/database/data-source.ts migration:generate",
     "migration:run": "node_modules/.bin/typeorm-ts-node-commonjs -d src/database/data-source.ts migration:run",
+    "migration:run:prod": "node_modules/.bin/typeorm -d dist/database/data-source.prod.js migration:run",
     "migration:revert": "node_modules/.bin/typeorm-ts-node-commonjs -d src/database/data-source.ts migration:revert",
     "seed": "ts-node -r tsconfig-paths/register scripts/seed.ts"
   },

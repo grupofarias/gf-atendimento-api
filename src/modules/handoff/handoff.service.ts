@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 
 import { ChatwootAdapter } from '@adapters/chatwoot/chatwoot.adapter';
 import { HandoffLog } from '@database/entities/handoff-log.entity';
-import { InboxConfig } from '@database/entities/inbox-config.entity';
 import { ConversationsService } from '@modules/conversations/conversations.service';
 
 @Injectable()
@@ -14,8 +13,6 @@ export class HandoffService {
     private readonly chatwoot: ChatwootAdapter,
     @InjectRepository(HandoffLog)
     private readonly handoffLogRepo: Repository<HandoffLog>,
-    @InjectRepository(InboxConfig)
-    private readonly inboxConfigRepo: Repository<InboxConfig>,
   ) {}
 
   async handoff(
@@ -26,17 +23,17 @@ export class HandoffService {
   ): Promise<{ status: string; botActive: boolean; conversationStatus: string }> {
     const conversation = await this.conversationsService.findByIdOrFail(chatwootConversationId);
 
-    const inboxConfig = await this.inboxConfigRepo.findOne({
-      where: { chatwootInboxId: conversation.inboxId },
-    });
+    if (!conversation.accountId) {
+      throw new Error(`accountId not set on conversation=${chatwootConversationId}`);
+    }
 
-    if (!inboxConfig) throw new Error(`InboxConfig not found for inboxId=${conversation.inboxId}`);
+    const accountId = conversation.accountId;
 
     if (teamId || agentId) {
-      await this.chatwoot.assignTeam(chatwootConversationId, teamId, agentId, inboxConfig.accountId);
+      await this.chatwoot.assignTeam(chatwootConversationId, teamId, agentId, accountId);
     }
-    await this.chatwoot.setConversationStatus(chatwootConversationId, 'pending', inboxConfig.accountId);
-    await this.chatwoot.addLabels(chatwootConversationId, inboxConfig.accountId, ['bot-off']);
+    await this.chatwoot.setConversationStatus(chatwootConversationId, 'pending', accountId);
+    await this.chatwoot.addLabels(chatwootConversationId, accountId, ['bot-off']);
     await this.conversationsService.setBotActive(chatwootConversationId, false);
     await this.conversationsService.setStatus(chatwootConversationId, 'pending');
 
@@ -44,7 +41,7 @@ export class HandoffService {
     if (reason) noteLines.push(`Motivo: ${reason}`);
     if (agentId) noteLines.push(`Atendente ID: ${agentId}`);
     if (teamId) noteLines.push(`Time ID: ${teamId}`);
-    await this.chatwoot.sendMessage(chatwootConversationId, noteLines.join('\n'), true, inboxConfig.accountId);
+    await this.chatwoot.sendMessage(chatwootConversationId, noteLines.join('\n'), true, accountId);
 
     await this.handoffLogRepo.save(
       this.handoffLogRepo.create({
