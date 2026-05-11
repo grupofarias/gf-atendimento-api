@@ -53,19 +53,21 @@ export class NormalizeService {
       normalized.message.media = await this.mediaResolver.resolve(normalized.message.media);
     }
 
-    const contact = await this.contacts.upsertContact(
-      inboxConfig.accountId,
-      normalized.message.phone,
-      payload.contact?.id,
-    );
+    const hasPhone = !!normalized.message.phone;
 
-    const conversation = await this.conversations.upsertConversation(
+    const contact = hasPhone
+      ? await this.contacts.upsertContact(
+          inboxConfig.accountId,
+          normalized.message.phone,
+          payload.contact?.id,
+        )
+      : null;
+
+    await this.conversations.upsertConversation(
       normalized.message.conversationId,
       normalized.message.inboxId,
-      contact.id,
+      contact?.id ?? 0,
     );
-
-    void conversation;
 
     const baseUrl = inboxConfig.account?.baseUrl ?? '';
     const chatwootUrl = baseUrl
@@ -76,7 +78,7 @@ export class NormalizeService {
       skip: false,
       message: {
         ...normalized.message,
-        contactId: contact.id,
+        contactId: contact?.id ?? payload.contact?.id,
         chatwootUrl,
       },
     };
