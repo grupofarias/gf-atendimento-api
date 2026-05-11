@@ -2,7 +2,7 @@
 
 Middleware de atendimento GF. Normaliza mensagens do Chatwoot em um schema `InternalMessage` padronizado e expõe endpoints para o n8n acionar ações no Chatwoot (enviar mensagem, transferir para humano, adicionar labels, etc.).
 
-**Visualização completa da arquitetura e guia de setup do n8n:** abra [`flow.html`](./flow.html) no navegador.
+**Visualização completa da arquitetura e guia de setup do n8n:** clone o repositório e abra `flow.html` direto no navegador (o GitHub não renderiza HTML — precisa abrir localmente).
 
 ---
 
