@@ -16,39 +16,56 @@ export class ConversationActionsService {
     private readonly inboxConfigRepo: Repository<InboxConfig>,
   ) {}
 
-  private async resolveAccountId(chatwootConversationId: number): Promise<number> {
-    const conv = await this.conversations.findByIdOrFail(chatwootConversationId);
-    const config = await this.inboxConfigRepo.findOne({ where: { chatwootInboxId: conv.inboxId } });
-    if (!config) throw new Error(`InboxConfig not found for inboxId=${conv.inboxId}`);
-    return config.accountId;
+  private async resolveConfig(
+    chatwootConversationId: number,
+    fallbackInboxId?: number,
+  ): Promise<{ accountId: number; inboxId: number }> {
+    const conv = await this.conversations.repo.findOne({
+      where: { chatwootConversationId },
+    });
+    const inboxId = conv?.inboxId ?? fallbackInboxId;
+    if (!inboxId) throw new Error(`Conversa ${chatwootConversationId} não encontrada. Informe inboxId como query param.`);
+    const config = await this.inboxConfigRepo.findOne({ where: { chatwootInboxId: inboxId } });
+    if (!config) throw new Error(`InboxConfig not found for inboxId=${inboxId}`);
+    return { accountId: config.accountId, inboxId };
+  }
+
+  private async resolveAccountId(chatwootConversationId: number, fallbackInboxId?: number): Promise<number> {
+    return (await this.resolveConfig(chatwootConversationId, fallbackInboxId)).accountId;
   }
 
   async setStatus(
     chatwootConversationId: number,
     status: 'open' | 'pending' | 'resolved' | 'snoozed',
+    inboxId?: number,
   ): Promise<void> {
-    const accountId = await this.resolveAccountId(chatwootConversationId);
+    const accountId = await this.resolveAccountId(chatwootConversationId, inboxId);
     await this.chatwoot.setConversationStatus(chatwootConversationId, status, accountId);
     await this.conversations.setStatus(chatwootConversationId, status);
   }
 
-  async addLabels(chatwootConversationId: number, labels: string[]): Promise<void> {
-    const accountId = await this.resolveAccountId(chatwootConversationId);
+  async addLabels(chatwootConversationId: number, labels: string[], inboxId?: number): Promise<void> {
+    const accountId = await this.resolveAccountId(chatwootConversationId, inboxId);
     await this.chatwoot.addLabels(chatwootConversationId, accountId, labels);
   }
 
-  async removeLabels(chatwootConversationId: number, labels: string[]): Promise<void> {
-    const accountId = await this.resolveAccountId(chatwootConversationId);
+  async removeLabels(chatwootConversationId: number, labels: string[], inboxId?: number): Promise<void> {
+    const accountId = await this.resolveAccountId(chatwootConversationId, inboxId);
     await this.chatwoot.removeLabels(chatwootConversationId, accountId, labels);
   }
 
-  async getAgents(chatwootConversationId: number, search?: string): Promise<unknown[]> {
-    const accountId = await this.resolveAccountId(chatwootConversationId);
-    return this.chatwoot.getAgents(accountId, search);
+  async getAgents(chatwootConversationId: number, inboxId?: number): Promise<unknown[]> {
+    const config = await this.resolveConfig(chatwootConversationId, inboxId);
+    return this.chatwoot.getInboxAgents(config.accountId, config.inboxId);
   }
 
-  async getTeams(chatwootConversationId: number): Promise<unknown[]> {
-    const accountId = await this.resolveAccountId(chatwootConversationId);
+  async getAllAgents(chatwootConversationId: number, inboxId?: number): Promise<unknown[]> {
+    const accountId = await this.resolveAccountId(chatwootConversationId, inboxId);
+    return this.chatwoot.getAllAgents(accountId);
+  }
+
+  async getTeams(chatwootConversationId: number, inboxId?: number): Promise<unknown[]> {
+    const accountId = await this.resolveAccountId(chatwootConversationId, inboxId);
     return this.chatwoot.getTeams(accountId);
   }
 }

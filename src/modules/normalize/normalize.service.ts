@@ -12,7 +12,7 @@ import { ConversationsService } from '@modules/conversations/conversations.servi
 
 export type NormalizeResult =
   | { skip: true; reason: string }
-  | { skip: false; message: InternalMessage };
+  | { skip: false; botActive: boolean; message: InternalMessage };
 
 @Injectable()
 export class NormalizeService {
@@ -63,7 +63,7 @@ export class NormalizeService {
         )
       : null;
 
-    await this.conversations.upsertConversation(
+    const conversation = await this.conversations.upsertConversation(
       normalized.message.conversationId,
       normalized.message.inboxId,
       contact?.id ?? 0,
@@ -76,6 +76,7 @@ export class NormalizeService {
 
     return {
       skip: false,
+      botActive: conversation.botActive,
       message: {
         ...normalized.message,
         contactId: contact?.id ?? payload.contact?.id,
